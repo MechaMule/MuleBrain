@@ -13,7 +13,7 @@ import tkinter.font
 # Main GUI window setup
 # Will start in fullscreen. f2 to toggle_fullscreen. f1 to close.
 #===============================================================================
-window = tkinter.Tk()
+window = Tk()
 screen_w = window.winfo_screenwidth()
 screen_h = window.winfo_screenheight()
 window.geometry('%dx%d' % (screen_w, screen_h))
