@@ -17,6 +17,7 @@ import RPi.GPIO as IO
 class PWM:
     def __init__(self, ch):
         self.ch = ch
+        #mapping channels to gpio pins
         if ch > 3:
             print("ERROR: Only 3 PWM channels.")
             raise SystemExit
@@ -28,10 +29,9 @@ class PWM:
             self.pin = 33
 
     #===============================================================================
-    # Function: PWM_init(pin_PWM, f)
+    # Function: Init(self, f)
     # Desc:     Initialize PWM. Sets pin active. Starts at 0% duty cycle.
-    # Params:   pin_PWM is the pin that will drive pwm signal
-    #           f = frequency that pwm will be set too.
+    # Params:   f = frequency that pwm will be set too.
     # Returns:  TRUE means success. FALSE = failed.
     #===============================================================================
     def Init(self, f):
@@ -42,18 +42,18 @@ class PWM:
             print("ERROR: Could not initialize PWM. Is GPIO mode set?")
             IO.cleanup()
             raise SystemExit
-            return False
-        
+            return False    #doesn't really get here but ye(:
+
         self.pwm = IO.PWM(self.pin, self.freq)
         self.pwm.start(0)
         self.duty = 0
         return True
 
     #===============================================================================
-    # Function: PWM_SetFrequency(f)
+    # Function: PWM_SetFrequency(self, f)
     # Desc:     Sets PWM Frequency
     # Params:   f = frequency for pwm
-    # Returns:  TRUE means success. False = failed.
+    # Returns:  Nothing. Might add TRUE means success. False = failed.
     #===============================================================================
     def SetFrequency(self, f):
         try:
@@ -63,40 +63,39 @@ class PWM:
             print("ERROR: Could not set frequency. Did you initialize?")
             IO.cleanup()
             raise SystemExit
-            
+
 
     #===============================================================================
-    # Function: PWM_SetDutyCycle(d)
+    # Function: PWM_SetDutyCycle(self, d)
     # Desc:     Sets Duty Cycle
     # Params:   d = duty cycle percentage
-    # Returns:  
+    # Returns:
     #===============================================================================
     def SetDutyCycle(self, d):
         self.duty = d
         self.pwm.start(self.duty)
 
     #===============================================================================
-    # Function: 
-    # Desc:     
-    # Params:   
-    # Returns:  
+    # Function: Stop(self)
+    # Desc:     Stops the PWM from outputting
+    # Params:   none
+    # Returns:  none
     #===============================================================================
     def Stop(self):
         self.pwm.stop()
 
     #===============================================================================
-    # Function: 
-    # Desc:     
-    # Params:   
-    # Returns:  
+    # Function: Start(self)
+    # Desc:     Restarts/Starts PWM for output
+    # Params:   none
+    # Returns:  none
     #===============================================================================
     def Start(self):
         self.pwm.start(freq)
 
 
-#Testing code.
-TEST = False
-if TEST == True:
+
+if __name__ == __main__:
     print("Running PWM test code")
     IO.setwarnings(False)
     IO.setmode(IO.BOARD)
