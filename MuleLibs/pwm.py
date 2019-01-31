@@ -23,12 +23,6 @@ class PWM:
             print("ERROR: Only 3 PWM channels.")
             raise SystemExit
         self.ch = ch
-        if ch == 1:
-            self.pin = 12
-        elif ch == 2:
-            self.pin = 32
-        elif ch == 3:
-            self.pin = 33
 
     #===============================================================================
     # Function: Init(self, f)
@@ -123,7 +117,7 @@ class PWM:
 if __name__ == "__main__":
     print("Running PWM test code")
     IO.setwarnings(False)
-    IO.setmode(IO.BOARD)
+    IO.setmode(IO.BCM)
 
     pwm1 = PWM(1)
     pwm2 = PWM(3)
