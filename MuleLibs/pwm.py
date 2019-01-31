@@ -13,8 +13,8 @@ import RPi.GPIO as IO
 # Class:    PWM
 # Desc:     Class for PWM
 # Param:    ch = channel. There are 3 pwm channels.
-#           ch1 = pin12, ch2 = pin32, ch3 = pin33
-#           bcm18,12,13
+#           for board: ch1 = pin12, ch2 = pin32, ch3 = pin33
+#           for bcm: bcm18,12,13
 #===============================================================================
 class PWM:
     def __init__(self, ch):
@@ -39,14 +39,14 @@ class PWM:
     def Init(self, f):
         self.freq = f
         mode = IO.getmode()
-        if mode == 10:  #BOARD
+        if mode == IO.BOARD:  
             if self.ch == 1:
                 self.pin = 12
             elif self.ch == 2:
                 self.pin = 32
             elif self.ch == 3:
                 self.pin = 33
-        elif mode == 11:
+        elif mode == IO.BCM:
             if self.ch == 1:
                 self.pin = 18
             elif self.ch == 2:
