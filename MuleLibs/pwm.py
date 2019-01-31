@@ -12,15 +12,17 @@ import RPi.GPIO as IO
 #===============================================================================
 # Class:    PWM
 # Desc:     Class for PWM
-# Param:    ch = channel. There are 3 pwm channels. ch1 = pin12, ch2 = pin32, ch3 = pin33
+# Param:    ch = channel. There are 3 pwm channels.
+#           ch1 = pin12, ch2 = pin32, ch3 = pin33
+#           bcm18,12,13
 #===============================================================================
 class PWM:
     def __init__(self, ch):
-        self.ch = ch
         #mapping channels to gpio pins
         if ch > 3:
             print("ERROR: Only 3 PWM channels.")
             raise SystemExit
+        self.ch = ch
         if ch == 1:
             self.pin = 12
         elif ch == 2:
@@ -36,6 +38,22 @@ class PWM:
     #===============================================================================
     def Init(self, f):
         self.freq = f
+        mode = IO.getmode()
+        if mode == 10:  #BOARD
+            if self.ch == 1:
+                self.pin = 12
+            elif self.ch == 2:
+                self.pin = 32
+            elif self.ch == 3:
+                self.pin = 33
+        elif mode == 11:
+            if self.ch == 1:
+                self.pin = 18
+            elif self.ch == 2:
+                self.pin = 12
+            elif self.ch == 3:
+                self.pin = 13
+        
         try:
             IO.setup(self.pin, IO.OUT)
         except:
@@ -43,7 +61,7 @@ class PWM:
             IO.cleanup()
             raise SystemExit
             return False    #doesn't really get here but ye(:
-
+        
         self.pwm = IO.PWM(self.pin, self.freq)
         self.pwm.start(0)
         self.duty = 0
@@ -93,9 +111,16 @@ class PWM:
     def Start(self):
         self.pwm.start(freq)
 
+    #===============================================================================
+    # Function: Close(self)
+    # Desc:     Cleanup IO
+    # Params:   none
+    # Returns:  none
+    #===============================================================================
+    def Clean(self):
+        IO.cleanup()
 
-
-if __name__ == __main__:
+if __name__ == "__main__":
     print("Running PWM test code")
     IO.setwarnings(False)
     IO.setmode(IO.BOARD)
