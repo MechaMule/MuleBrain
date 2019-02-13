@@ -18,11 +18,11 @@
 from pwm import *
 import RPi.GPIO as GPIO
 
-Left_Dir_GPIO = 11
-Left_Dir_INV = 13
+Left_Dir_GPIO = 17          #
+Left_Dir_INV = 27
 
-Right_Dir_GPIO = 16          #Using Pin 4 and Pin 5 on GPIO of RaspPi
-Right_Dir_INV = 18
+Right_Dir_GPIO = 23          #Using Pin 4 and Pin 5 on GPIO of RaspPi
+Right_Dir_INV = 24
 
 #===============================================================================
 # Function: Motor_Init
@@ -34,11 +34,11 @@ Right_Dir_INV = 18
 def Motor_Init():
     global Left_PWM
     global Right_PWM
-    Left_PWM = PWM(1)
-    Right_PWM = PWM(3)
+    Left_PWM = PWM(18, 1000, 0)
+    Right_PWM = PWM(13, 1000, 0)
 
-    Left_PWM.Init(1000)
-    Right_PWM.Init(1000)
+#    Left_PWM.Init(1000)
+#    Right_PWM.Init(1000)
 
 
 
@@ -149,23 +149,34 @@ TEST = True
 if(TEST == True):
     print("Running Motor functions test")
     GPIO.setwarnings(False)
-    GPIO.setmode(IO.BOARD)
+    GPIO.setmode(IO.BCM)
 
     Motor_Init()
     sp = 50
-    LeftMtrSpeed(sp) #should be low
-    RightMtrSpeed(sp)
+    counter = 0
+    try:
+        while 1:
+            if counter < 250000:
+                LeftMtrSpeed(sp) #should be low
+                RightMtrSpeed(sp)
     
-    input("press return to continue")
-
-    LeftMtrSpeed(0)
-    RightMtrSpeed(0)
+            #input("press return to continue")
+            elif counter > 250000 and counter < 400000:
+                LeftMtrSpeed(0)
+                RightMtrSpeed(0)
     
-    input("press return to continue again")
-    
-    LeftMtrSpeed(-sp)  #should be high
-    RightMtrSpeed(-sp)
+            #input("press return to continue again")
+            elif counter > 400000:
+                LeftMtrSpeed(-sp)  #should be high
+                RightMtrSpeed(-sp)
 
-    input("press return to stop")
+            #input("press return to stop")
+            counter += 1
 
-    GPIO.cleanup()
+    except KeyboardInterrupt:
+        GPIO.cleanup()
+        print("Ending Program")
+
+    else:
+        GPIO.cleanup()
+        print("Ending program")
