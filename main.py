@@ -1,20 +1,33 @@
-#nothing much to do here yet. (:
-
 import sys
 sys.path.insert(0, './MuleLibs')
-import RPi.GPIO as IO
-from pwm import *
 
+from queue import Queue
+import Keyboard
+import threading
+import time
 
-IO.setwarnings(False)
-IO.setmode(IO.BOARD)
+def qworker(stopper):
+    """Thread Method to process the queue"""
+    while (stopper.is_set() == False):
+        print(q1.get())
+        q1.task_done()
 
-pwm1 = PWM(1)
-pwm1.Init(100)
-pwm1.SetDutyCycle(50)
+if __name__ == '__main__':
+    q1 = Queue(maxsize=0)
+    closer = threading.Event()
+    for i in range(3):
+        t = threading.Thread(target=qworker, kwargs=dict(stopper=closer))
+        t.daemon = True
+        t.start()
 
-input("press return to stop.")
+    kb = Keyboard.KB(closer,q1)
+    kb.start()
 
-pwm1.Stop()
-
-IO.cleanup()
+    try:
+        while(closer.is_set()==False):
+            time.sleep(1)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        print("closing program in .5 seconds")
+        time.sleep(.5)
