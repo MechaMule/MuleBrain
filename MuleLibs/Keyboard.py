@@ -19,6 +19,8 @@ class KB(threading.Thread):
         print(key)
         if key == keyboard.Key.esc:
             self.stopper.set()
+            print("ESC pressed")
+            raise MyException(key)
         self.q.put(key.char)
 
     def run(self):
