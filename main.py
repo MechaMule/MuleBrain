@@ -6,7 +6,8 @@ import Keyboard
 import threading
 import time
 import Signal
-import math
+import Echo
+from pynput import keyboard
 
 
 def qworker(stopper):
@@ -16,14 +17,18 @@ def qworker(stopper):
         q1.task_done()
 
 if __name__ == '__main__':
-    #declare pins
-    p_trig = 13
-    p_echo = 19
-    
-    #creating threaded queue
-    q1 = Queue(maxsize=0)
     closer = threading.Event()
-    for i in range(3):
+    #declare pins
+    p_trig = 26
+    p_echo = 19
+
+    #creating the trigger signal
+    trig = Signal.Generator(closer, p_trig, 10E-6, 60E-3)
+    trig.start()
+    
+##    #creating threaded queue
+    q1 = Queue(maxsize=0)
+    for i in range(1):
         t = threading.Thread(target=qworker, kwargs=dict(stopper=closer))
         t.daemon = True
         t.start()
@@ -31,18 +36,17 @@ if __name__ == '__main__':
     #creating threaded keyboard. has access to the queue
     kb = Keyboard.KB(closer,q1)
     kb.start()
-
-    #creating the trigger signal
-    trig = Signal.Generator(closer, p_trig, 10E-6, 10E-6)
-    trig.start()
     
+    #ccreate echo object for the ping sensor
+    echo = Echo.ECHO(p_echo)
     
     try:
         while(closer.is_set()==False):
+            print(echo.cm * 0.393701)
             time.sleep(1)
-            pass
     except KeyboardInterrupt:
         pass
     finally:
         print("closing program in .5 seconds")
+        closer.set()
         time.sleep(.5)

@@ -20,6 +20,7 @@ class KB(threading.Thread):
         try:
             if key == keyboard.Key.esc:
                 self.stopper.set()
+                self.listener.stop()
                 print("ESC pressed")
                 raise MyException(key)
             self.q.put(key.char)
@@ -29,10 +30,9 @@ class KB(threading.Thread):
 
     def run(self):
         self.listener.start()
-        while (self.stopper.is_set() == False):
-            pass
-        self.listener.stop()
-        print("Keyboard Thread Exit")
+##        while (self.stopper.is_set() == False):
+##            pass
+##        self.listener.stop()
 
 
 

@@ -44,10 +44,11 @@ class Generator(threading.Thread):
     def Work(self):
         """Working thread"""
         while (self.stopper.is_set() == False):
+            time.sleep(self.time_low)
             IO.output(self.pin, IO.HIGH)
             time.sleep(self.time_high)
             IO.output(self.pin, IO.LOW)
-            time.sleep(self.time_low)
+        IO.output(self.pin, IO.LOW)
         IO.cleanup((self.pin))
         print("Signal Thread Exit")
 
@@ -59,4 +60,19 @@ class Generator(threading.Thread):
         t.start()
 
 if __name__ == '__main__':
-    pass
+    closer = threading.Event()
+    p = 26
+
+    trig = Generator(closer, p, 10e-6, 60e-3)
+    trig.start()
+
+    try:
+        input("press to stop")
+        closer.set()
+    except KeyboardIntterupt:
+        pass
+    finally:
+        print("exit")
+        closer.set()
+        time.sleep(.5)
+        IO.cleanup()
