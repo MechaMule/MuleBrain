@@ -5,11 +5,15 @@
 # File: Signal.py
 # Desc: library to generate square signals.
 #===============================================================================
+# IMPORTS
+#===============================================================================
 import threading
 import time
 import RPi.GPIO as IO
 
-
+#===============================================================================
+# Main Object Thread
+#===============================================================================
 class Generator(threading.Thread):
     """This thread class loops a pin high for some time and low for some time.
     Parameters:
@@ -31,7 +35,7 @@ class Generator(threading.Thread):
         IO.setwarnings(False)
         IO.setmode(self.IO_mode)
         IO.setup(self.pin, IO.OUT)
-        
+
     def ChangeTime(self, time_high, time_low):
         """Signal Method to update high and low time
         Parameters:
@@ -42,23 +46,30 @@ class Generator(threading.Thread):
         self.time_low = time_low
 
     def Work(self):
-        """Working thread"""
+        """Working thread for creating signal"""
         while (self.stopper.is_set() == False):
             time.sleep(self.time_low)
             IO.output(self.pin, IO.HIGH)
             time.sleep(self.time_high)
             IO.output(self.pin, IO.LOW)
-        IO.output(self.pin, IO.LOW)
-        IO.cleanup((self.pin))
+        self.clean()
         print("Signal Thread Exit")
 
-    
+
     def run(self):
-        """Starts the thread"""
+        """Starts the signal thread"""
         t = threading.Thread(target=self.Work)
         t.daemon = True
         t.start()
 
+    def clean(self):
+        """Resets and cleans up the signal pin"""
+        IO.output(self.pin, IO.LOW)
+        IO.cleanup((self.pin))
+
+#===============================================================================
+# Module Main
+#===============================================================================
 if __name__ == '__main__':
     closer = threading.Event()
     p = 26

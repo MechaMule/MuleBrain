@@ -1,3 +1,12 @@
+#===============================================================================
+# MechaMule!
+# Name(s):  Johnson Le
+# Date: February 17, 2019
+# File: Main.py
+# Desc: The main file that initializes everything for the mule.
+#===============================================================================
+# IMPORTS
+#===============================================================================
 import sys
 sys.path.insert(0, './MuleLibs')
 
@@ -7,15 +16,19 @@ import threading
 import time
 import Signal
 import Echo
-from pynput import keyboard
 
-
+#===============================================================================
+# Methods
+#===============================================================================
 def qworker(stopper):
     """Thread Method to process the queue"""
     while (stopper.is_set() == False):
         print(q1.get())
         q1.task_done()
 
+#===============================================================================
+# MAIN MAIN
+#===============================================================================
 if __name__ == '__main__':
     closer = threading.Event()
     #declare pins
@@ -25,10 +38,10 @@ if __name__ == '__main__':
     #creating the trigger signal
     trig = Signal.Generator(closer, p_trig, 10E-6, 60E-3)
     trig.start()
-    
-##    #creating threaded queue
+
+    #creating threaded queue
     q1 = Queue(maxsize=0)
-    for i in range(1):
+    for i in range(1): #change to increase num of threads for processing queue.
         t = threading.Thread(target=qworker, kwargs=dict(stopper=closer))
         t.daemon = True
         t.start()
@@ -36,10 +49,10 @@ if __name__ == '__main__':
     #creating threaded keyboard. has access to the queue
     kb = Keyboard.KB(closer,q1)
     kb.start()
-    
-    #ccreate echo object for the ping sensor
+
+    #ccreate echo object for the ping sensor don't forget to clean
     echo = Echo.ECHO(p_echo)
-    
+
     try:
         while(closer.is_set()==False):
             print(echo.cm * 0.393701)
@@ -48,5 +61,6 @@ if __name__ == '__main__':
         pass
     finally:
         print("closing program in .5 seconds")
+        echo.clean()
         closer.set()
         time.sleep(.5)
