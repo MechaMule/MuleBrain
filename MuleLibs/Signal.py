@@ -10,7 +10,7 @@ import time
 import RPi.GPIO as IO
 
 
-class Signal(threading.Thread):
+class Generator(threading.Thread):
     """This thread class loops a pin high for some time and low for some time.
     Parameters:
     (1) closer (threading.Event()) : used to detect when to end thread.
@@ -28,6 +28,10 @@ class Signal(threading.Thread):
         self.stopper = stopper
         self.IO_mode = IO_mode
 
+        IO.setwarnings(False)
+        IO.setmode(self.IO_mode)
+        IO.setup(self.pin, IO.OUT)
+        
     def ChangeTime(self, time_high, time_low):
         """Signal Method to update high and low time
         Parameters:
@@ -39,14 +43,11 @@ class Signal(threading.Thread):
 
     def Work(self):
         """Working thread"""
-        IO.setwarnings(False)
-        IO.setmode(self.IO_mode)
-        IO.setup(self.pin, IO.OUT)
         while (self.stopper.is_set() == False):
-            time.sleep(self.time_low)
             IO.output(self.pin, IO.HIGH)
             time.sleep(self.time_high)
             IO.output(self.pin, IO.LOW)
+            time.sleep(self.time_low)
         IO.cleanup((self.pin))
         print("Signal Thread Exit")
 

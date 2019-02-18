@@ -17,11 +17,15 @@ class KB(threading.Thread):
 
     def on_press(self, key):
         print(key)
-        if key == keyboard.Key.esc:
-            self.stopper.set()
-            print("ESC pressed")
-            raise MyException(key)
-        self.q.put(key.char)
+        try:
+            if key == keyboard.Key.esc:
+                self.stopper.set()
+                print("ESC pressed")
+                raise MyException(key)
+            self.q.put(key.char)
+        except AttributeError:
+            print('special key {0} pressed'.format(
+                key))
 
     def run(self):
         self.listener.start()
