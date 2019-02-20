@@ -26,19 +26,21 @@ class MOTOR(object):
         #store parameters
         self.pin_pwmL = pin_pwmL
         self.pin_pwmR = pin_pwmR
+        
         self.pin_dirL = pin_dirL
-        self.pin_pwmR = pin_dirR
+        self.pin_dirR = pin_dirR
+        
         self.pwm_freq = pwm_freq
         self.IO_mode = IO_mode
         #set up the GPIO
         IO.setwarnings(False)
         IO.setmode(self.IO_mode)
-        #create pwm object for enabling motors
-        self.pwmL = PWM(self.pin_pwmL, self.pwm_freq, 0)
-        self.pwmR = PWM(self.pin_pwmR, self.pwm_freq, 0)
         #setting up direction pins for h-bridge
         IO.setup(self.pin_dirL, IO.OUT, initial = MOTOR.FORWARD)
         IO.setup(self.pin_dirR, IO.OUT, initial = MOTOR.FORWARD)
+        #create pwm object for enabling motors
+        self.pwmL = PWM(self.pin_pwmL, self.pwm_freq)
+        self.pwmR = PWM(self.pin_pwmR, self.pwm_freq)
 
     def Motor_L(self, speed):
         """MOTOR Method for driving Left pwm.
@@ -78,6 +80,18 @@ class MOTOR(object):
         """Clean up the pins that were used."""
         self.Halt()
         IO.cleanup((self.pin_dirL, self.pin_pwmL, self.pin_dirR, self.pin_pwmR))
+
+if __name__ == "__main__":
+    print("Motor Test Start")
+    mtr = MOTOR(13, 6, 16, 20)
+    mtr.Motor_R(100)
+    mtr.Motor_L(100)
+    try:
+        input("enter to stop")
+    except KeyboardInterrupt:
+        pass
+    finally:
+        mtr.clean()
 
 
 #import RPi.GPIO as IO

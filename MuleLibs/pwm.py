@@ -8,7 +8,7 @@
 # IMPORTS
 #===============================================================================
 import RPi.GPIO as IO
-
+#might want to use pigpio for pwm instead of RPi.GPIO
 class PWM(object):
     """Class for controlling PWM.
     Parameters:
@@ -62,8 +62,6 @@ class PWM(object):
 
 if __name__ == "__main__":
     print("Running PWM test code")
-    IO.setwarnings(False)
-    IO.setmode(IO.BCM)
-    pwm = PWM(18)
+    pwm = PWM(18,1000,50)
     input("press return to stop.")
     pwm.clean()

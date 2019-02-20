@@ -16,6 +16,7 @@ import threading
 import time
 import Signal
 import Echo
+from MuleMotor_Functions import MOTOR
 
 #===============================================================================
 # Methods
@@ -26,14 +27,24 @@ def qworker(stopper):
         print(q1.get())
         q1.task_done()
 
+def MapRange(x, in_min, in_max, out_min, out_max):
+    return (out_min + ( ((out_max-out_min)*(x-in_min))/(in_max-in_min) ))
+    
+    
 #===============================================================================
 # MAIN MAIN
 #===============================================================================
 if __name__ == '__main__':
     closer = threading.Event()
     #declare pins
-    p_trig = 26
-    p_echo = 19
+    p_trig = 5
+    p_mtrL = 13
+    p_mtrR = 6
+    p_dirL = 16
+    p_dirR = 20
+    p_echoL = 26
+    p_echoR = 19
+    
 
     #creating the trigger signal
     trig = Signal.Generator(closer, p_trig, 10E-6, 60E-3)
@@ -50,17 +61,34 @@ if __name__ == '__main__':
     kb = Keyboard.KB(closer,q1)
     kb.start()
 
-    #ccreate echo object for the ping sensor don't forget to clean
-    echo = Echo.ECHO(p_echo)
+    #create echo object for the ping sensor don't forget to clean
+    echoL = Echo.ECHO(p_echoL)
+    echoR = Echo.ECHO(p_echoR)
+
+    #create h-bridge motor control class
+    mtr = MOTOR(p_mtrL, p_mtrR, p_dirL, p_dirR)
 
     try:
         while(closer.is_set()==False):
-            print(echo.cm * 0.393701)
-            time.sleep(1)
+            L = echoL.GetInch()
+            R = echoR.GetInch()
+            print(L, "||", R)
+            if(L < 6 or L > 24):
+                mtr.Motor_L(0)
+            else:
+                mtr.Motor_L(MapRange(L,6, 24, 20, 100))
+                
+            if(R < 6 or R > 24):
+                mtr.Motor_R(0)
+            else:
+                mtr.Motor_R(MapRange(L,6, 24, 20, 100))
+            time.sleep(0.5)
     except KeyboardInterrupt:
         pass
     finally:
         print("closing program in .5 seconds")
-        echo.clean()
+        echoL.clean()
+        echoR.clean()
+        mtr.clean()
         closer.set()
         time.sleep(.5)

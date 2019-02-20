@@ -32,6 +32,7 @@ class ECHO(object):
         self.dist = 0   #raw distance in meters
 
         self.speed_of_sound = 331.3 * math.sqrt(1+(self.temp / 273.15)) #m/s
+        self.timeout = 6 / self.speed_of_sound
 
         IO.setwarnings(False)
         IO.setmode(self.IO_mode)
@@ -47,14 +48,19 @@ class ECHO(object):
             self.t_start = time.time()
         elif (IO.input(self.pin) == IO.LOW):
             self.TOF = time.time() - self.t_start
-            self.dist = self.TOF * ((self.speed_of_sound)/(2)) #note div 2.
+            if(self.TOF < self.timeout):
+                self.dist = self.TOF * ((self.speed_of_sound)/(2)) #note div 2.
 
+    
     def GetMeters(self):
         return round(self.dist, 5)
 
     def GetFeet(self):
         return round(self.dist * 3.28084, 5)
 
+    def GetInch(self):
+        return round(self.dist * 3.28084 * 12, 5)
+    
     def clean(self):
         """Resets and cleans up the echo pin"""
         IO.cleanup((self.pin))
