@@ -18,25 +18,20 @@ class ECHO(object):
     """ECHO class will catch hardware changes ie the echo.
     Parameters:
     (2) pin   (int) : help= give pin number
-    (4) temp  (sec) : default = 20,     help= temperature in the area
+    (4) temp  (sec) : default = 20,     help= temperature in celsius
     (5) IO_mode     : default = IO.BCM, help= BCM or BOARD
     """
     def __init__(self, pin, temp=20, IO_mode=IO.BCM):
         """Constructor for ECHO Class"""
         self.pin = pin
-        self.temp = temp
+        self.temp = temp # temperature in celsius
         self.IO_mode = IO_mode
 
-        self.t_start = 0
-        self.t_end = 0
-        self.TOF = 0
-        self.cm = 0
-        self.inch = 0
-        self.meters = 0
-        self.feet = 0
-        self.state = IO.LOW
+        self.t_start = 0    #just used for holding time when echo start
+        self.TOF = 0    #raw time of flight in seconds
+        self.dist = 0   #raw distance in meters
 
-        self.speed_of_sound = 331.3 * math.sqrt(1+(self.temp / 273.15))
+        self.speed_of_sound = 331.3 * math.sqrt(1+(self.temp / 273.15)) #m/s
 
         IO.setwarnings(False)
         IO.setmode(self.IO_mode)
@@ -46,14 +41,19 @@ class ECHO(object):
 
 
     def callback(self, channel):
-        """Function to be called caught a pin state changes"""
+        """Function to be called caught a pin state changesself.
+        Calculates time of flight and distance in meters"""
         if (IO.input(self.pin) == IO.HIGH):
             self.t_start = time.time()
         elif (IO.input(self.pin) == IO.LOW):
-            self.t_end = time.time()
-            self.TOF = self.t_end - self.t_start
-            cm = self.TOF * ((self.speed_of_sound * 100)/2)
-            self.cm = cm
+            self.TOF = time.time() - self.t_start
+            self.dist = self.TOF * ((self.speed_of_sound)/(2)) #note div 2.
+
+    def GetMeters(self):
+        return round(self.dist, 5)
+
+    def GetFeet(self):
+        return round(self.dist * 3.28084, 5)
 
     def clean(self):
         """Resets and cleans up the echo pin"""
@@ -65,8 +65,7 @@ class ECHO(object):
 if __name__ == '__main__':
     p = 19
     yaaah = ECHO(p)
-
-
+    
     try:
         while True:
             print(yaaah.cm*.393701)
