@@ -17,6 +17,7 @@ import time
 import Signal
 import Echo
 from MuleMotor_Functions import MOTOR
+##from bluedot.btcomm import BluetoothServer
 
 #===============================================================================
 # Methods
@@ -70,18 +71,18 @@ if __name__ == '__main__':
 
     try:
         while(closer.is_set()==False):
-            L = echoL.GetInch()
-            R = echoR.GetInch()
+            L = 2*echoL.GetInch()
+            R = 2*echoR.GetInch()
             print(L, "||", R)
-            if(L < 6 or L > 24):
+            if(L <= 18 or L >= 60):
                 mtr.Motor_L(0)
             else:
-                mtr.Motor_L(MapRange(L,6, 24, 20, 100))
+                mtr.Motor_L(MapRange(L, 18, 60, 20, 90))
                 
-            if(R < 6 or R > 24):
+            if(R <= 18 or R >= 60):
                 mtr.Motor_R(0)
             else:
-                mtr.Motor_R(MapRange(L,6, 24, 20, 100))
+                mtr.Motor_R(MapRange(L, 18, 60, 20, 90))
             time.sleep(0.5)
     except KeyboardInterrupt:
         pass

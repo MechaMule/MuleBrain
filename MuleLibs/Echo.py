@@ -10,6 +10,7 @@
 import RPi.GPIO as IO
 import time
 import math
+import threading
 
 #===============================================================================
 # Main Object Class
@@ -30,9 +31,14 @@ class ECHO(object):
         self.t_start = 0    #just used for holding time when echo start
         self.TOF = 0    #raw time of flight in seconds
         self.dist = 0   #raw distance in meters
+        
 
         self.speed_of_sound = 331.3 * math.sqrt(1+(self.temp / 273.15)) #m/s
         self.timeout = 6 / self.speed_of_sound
+        self.TOF_1m = 1 / self.speed_of_sound
+
+        self.arr = [0]*10
+        self.i = 0
 
         IO.setwarnings(False)
         IO.setmode(self.IO_mode)
@@ -44,12 +50,22 @@ class ECHO(object):
     def callback(self, channel):
         """Function to be called caught a pin state changesself.
         Calculates time of flight and distance in meters"""
+        if(self.i >=10):
+            self.i=0
         if (IO.input(self.pin) == IO.HIGH):
             self.t_start = time.time()
         elif (IO.input(self.pin) == IO.LOW):
-            self.TOF = time.time() - self.t_start
-            if(self.TOF < self.timeout):
-                self.dist = self.TOF * ((self.speed_of_sound)/(2)) #note div 2.
+            tof = time.time() - self.t_start
+            if((self.TOF == 0 and tof<self.timeout) or tof < self.TOF + self.TOF_1m):
+                self.TOF = tof
+                self.arr[self.i]=self.TOF * ((self.speed_of_sound)/(2)) #note div 2
+                self.i+=1
+                self.dist = sum(self.arr)/len(self.arr)
+##                self.dist = self.TOF * ((self.speed_of_sound)/(2)) #note div 2
+                
+##            self.TOF = time.time() - self.t_start
+##            if(self.TOF < self.timeout):
+##                self.dist = self.TOF * ((self.speed_of_sound)/(2)) #note div 2.
 
     
     def GetMeters(self):
@@ -69,13 +85,37 @@ class ECHO(object):
 # Module Main
 #===============================================================================
 if __name__ == '__main__':
-    p = 19
-    yaaah = ECHO(p)
-    
+    import Signal
+    p_trig = 5
+    p_echoL = 26
+    p_echoR = 19
+    closer = threading.Event()
+
+    trig = Signal.Generator(closer, p_trig, 10E-6, 60E-3)
+    trig.start()
+
+    echoL = ECHO(p_echoL)
+    echoR = ECHO(p_echoR)
+
     try:
         while True:
-            print(yaaah.cm*.393701)
-            time.sleep(1)
+            print(2*echoL.GetInch(), "||", 2*echoR.GetInch())
+            time.sleep(0.5)
     except KeyboardInterrupt:
-        yaaah.clean()
-        print("exit")
+        pass
+    finally:
+        echoL.clean()
+        echoR.clean()
+        print("exiting")
+            
+    
+##    p = 19
+##    yaaah = ECHO(p)
+##    
+##    try:
+##        while True:
+##            print(yaaah.cm*.393701)
+##            time.sleep(1)
+##    except KeyboardInterrupt:
+##        yaaah.clean()
+##        print("exit")
