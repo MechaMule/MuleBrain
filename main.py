@@ -73,16 +73,22 @@ if __name__ == '__main__':
         while(closer.is_set()==False):
             L = 2*echoL.GetInch()
             R = 2*echoR.GetInch()
+            l = 0
+            r = 0
+            if L < R:
+                l = 20
+            if R < L:
+                r = 20
             print(L, "||", R)
-            if(L <= 18 or L >= 60):
+            if(L <= 12 or L >= 60):
                 mtr.Motor_L(0)
             else:
-                mtr.Motor_L(MapRange(L, 18, 60, 20, 90))
+                mtr.Motor_L(l+MapRange(L, 12, 60, 30, 70))
                 
-            if(R <= 18 or R >= 60):
+            if(R <= 12 or R >= 60):
                 mtr.Motor_R(0)
             else:
-                mtr.Motor_R(MapRange(L, 18, 60, 20, 90))
+                mtr.Motor_R(r+MapRange(L, 12, 60, 30, 70))
             time.sleep(0.5)
     except KeyboardInterrupt:
         pass
