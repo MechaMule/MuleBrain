@@ -3,98 +3,65 @@
 # Name(s): Johnson Le
 # Date: January 24, 2019
 # File: pwm.py
-# Desc: library to control pwm. PWM pins are 12, 32, 33
+# Desc: library to control pwm. main PWM pins are 12, 32, 33
 #===============================================================================
 # IMPORTS
 #===============================================================================
 import RPi.GPIO as IO
-
-#===============================================================================
-# Class:    PWM
-# Desc:     Class for PWM
-# Param:    pin = pin number. There are 3 main pwm channels.
-#           for board: ch1 = pin12, ch2 = pin32, ch3 = pin33
-#           for bcm: bcm18,12,13
-#===============================================================================
+#might want to use pigpio for pwm instead of RPi.GPIO
 class PWM(object):
-    #===============================================================================
-    # Function: PWM constructor
-    # Desc:     create the pwm object with some parameters
-    # Params:   f = frequency for pwm
-    #           pin = what pin
-    #           duty = duty cycle
-    # Returns:  Nothing. Might add TRUE means success. False = failed.
-    #===============================================================================
-    def __init__(self, pin, freq = 1000, duty = 0):
+    """Class for controlling PWM.
+    Parameters:
+    (1) pin : provide pin for pwm.
+    (2) freq: frequency for pwm. default = 1000.
+    (3) duty: initial duty from 0-100. default = 0.
+    """
+    def __init__(self, pin, freq = 1000, duty = 0, IO_mode=IO.BCM):
+        """Constructor for PWM class"""
         self.pin = pin
         self.freq = freq
         self.duty = duty
-        try:
-            IO.setup(self.pin, IO.OUT)
-        except:
-            print("ERROR: Could not initialize this PWM. IS GPIO mode set?")
-            IO.cleanup()
-            raise SystemExit
+        self.IO_mode = IO_mode
+
+        #set up the GPIO
+        IO.setwarnings(False)
+        IO.setmode(self.IO_mode)
+        #set up pin
+        IO.setup(self.pin, IO.OUT)
+        #create pwm
         self.pwm = IO.PWM(self.pin, self.freq)
         self.pwm.start(self.duty)
 
-    #===============================================================================
-    # Function: PWM_SetFrequency(self, f)
-    # Desc:     Sets PWM Frequency
-    # Params:   f = frequency for pwm
-    # Returns:  Nothing. Might add TRUE means success. False = failed.
-    #===============================================================================
-    def SetFrequency(self, f):
-        try:
-            self.freq = f
-            self.pwm.ChangeFrequency(self.freq)
-        except:
-            print("ERROR: Could not set frequency. Did you initialize?")
-            IO.cleanup()
-            raise SystemExit
+    def SetFrequency(self, freq):
+        """PWM Method for changing frequency.
+        Parameters:
+        (1) f : change frequency of signal
+        """
+        self.freq = freq
+        self.pwm.ChangeFrequency(self.freq)
 
-
-    #===============================================================================
-    # Function: PWM_SetDutyCycle(self, d)
-    # Desc:     Sets Duty Cycle
-    # Params:   d = duty cycle percentage
-    # Returns:
-    #===============================================================================
-    def SetDutyCycle(self, d):
-        self.duty = d
+    def SetDutyCycle(self, duty):
+        """PWM Method for changing duty cycle.
+        Parameters:
+        (1) duty : change duty cycle of signal
+        """
+        self.duty = duty
         self.pwm.start(self.duty)
 
-    #===============================================================================
-    # Function: Stop(self)
-    # Desc:     Stops the PWM from outputting
-    # Params:   none
-    # Returns:  none
-    #===============================================================================
     def Stop(self):
+        """PWM Method for stopping PWM"""
         self.pwm.stop()
 
-    #===============================================================================
-    # Function: Start(self)
-    # Desc:     Restarts/Starts PWM for output
-    # Params:   none
-    # Returns:  none
-    #===============================================================================
     def Start(self):
+        """PWM method for starting PWM"""
         self.pwm.start(freq)
 
-    #===============================================================================
-    # Function: Close(self)
-    # Desc:     Cleanup IO
-    # Params:   none
-    # Returns:  none
-    #===============================================================================
-    def Clean(self):
-        IO.cleanup()
+    def clean(self):
+        """clean up the pwm io pin"""
+        IO.cleanup((self.pin))
 
 if __name__ == "__main__":
     print("Running PWM test code")
-    IO.setwarnings(False)
-    IO.setmode(IO.BCM)
-    pwm = PWM(18)
+    pwm = PWM(18,1000,50)
     input("press return to stop.")
-    pwm.Clean()
+    pwm.clean()
