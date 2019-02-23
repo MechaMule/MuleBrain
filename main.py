@@ -30,8 +30,9 @@ def qworker(stopper):
 
 def MapRange(x, in_min, in_max, out_min, out_max):
     return (out_min + ( ((out_max-out_min)*(x-in_min))/(in_max-in_min) ))
-    
-    
+
+def bt_received(data):
+    pass
 #===============================================================================
 # MAIN MAIN
 #===============================================================================
@@ -68,6 +69,9 @@ if __name__ == '__main__':
 
     #create h-bridge motor control class
     mtr = MOTOR(p_mtrL, p_mtrR, p_dirL, p_dirR)
+
+    #create bt server host
+    bts = BluetoothServer(bt_recieved)
 
     try:
         while(closer.is_set()==False):
