@@ -24,9 +24,9 @@ class SendMsg:
             GPIO.setup(self.LED_Y, GPIO.OUT, initial=GPIO.LOW)
             GPIO.setup(self.LED_G, GPIO.OUT, initial=GPIO.LOW)
 
-    def retrieve_data(self):        
+    def retrieve_data(self):
         #print("Received", data)
-        return self.saved_msg                         
+        return self.saved_msg
 #    def Get_Msg(self, getMsg):
 #        return self.getMsg
 
@@ -45,17 +45,17 @@ class SendMsg:
         elif (not GPIO.input(self.LED_G) and Flag is True):
             print("Turning on Green Button Led")
             GPIO.output(self.LED_G, GPIO.HIGH)
-              
+
 
     def ClearSaved_Msg(self):
         self.saved_msg = "CLEARED_MESSAGE"
         return self.saved_msg
-    
+
     def data_received(self, data):
         print("Received", data)
         self.saved_msg = data
-        
-        
+
+
 
 #save_msg = "Nothing meaningful"
 #Server = BluetoothServer(data_received)
@@ -78,7 +78,7 @@ if __name__ == "__main__":
                 Flag_G = True
                 Msg1.setHighLow_G(Flag_G)
                 Msg1.ClearSaved_Msg()
-            
+
             elif BT_Msg == 'GP17_LIT':
                 print("Going to Calibration settings")
                 Flag_Y = True
