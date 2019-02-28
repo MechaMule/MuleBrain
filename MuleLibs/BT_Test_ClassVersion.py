@@ -1,16 +1,18 @@
 from bluedot.btcomm import BluetoothServer
 import Signal
+from queue import Queue
 import time
 import RPi.GPIO as GPIO
 
-#LED_Y = 25
-#LED_G = 27
-#GPIO.setmode(GPIO.BCM)
-#GPIO.setup(LED_Y, GPIO.OUT, initial=GPIO.LOW)
-#GPIO.setup(LED_G, GPIO.OUT, initial=GPIO.LOW)
+LED_W = 17
+LED_B = 20
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(LED_W, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(LED_B, GPIO.OUT, initial=GPIO.LOW)
 
 class SendMsg:
-    def __init__(self, LED_Y=25, LED_G=27, saved_msg="NO_MESSAGE", GPIO_mode=GPIO.BCM):
+    def __init__(self, q, LED_Y=25, LED_G=27, saved_msg="NO_MESSAGE", GPIO_mode=GPIO.BCM):
+        self.q = q
         self.LED_Y = LED_Y
         self.LED_G = LED_G
         self.saved_msg = saved_msg
@@ -53,6 +55,7 @@ class SendMsg:
     
     def data_received(self, data):
         print("Received", data)
+        self.q.put(data)
         self.saved_msg = data
         
         
@@ -73,20 +76,34 @@ if __name__ == "__main__":
             BT_Msg = Msg1.retrieve_data()
             #print(BT_Msg)
             #print('Saved string: {}'.format(Save_Str))
-            if BT_Msg == 'GP27_LIT':
-                print("Going to Distance options")
+            if BT_Msg == 'DIST_5FT':
+                print("Distance is now set to: 5FT")
                 Flag_G = True
                 Msg1.setHighLow_G(Flag_G)
                 Msg1.ClearSaved_Msg()
             
-            elif BT_Msg == 'GP17_LIT':
-                print("Going to Calibration settings")
+            elif BT_Msg == 'DIST_10FT':
+                print("Distance is now set to: 10FT")
                 Flag_Y = True
                 Msg1.setHighLow_Y(Flag_Y)
                 Msg1.ClearSaved_Msg()
+
+            elif BT_Msg == 'DIST_15FT':
+                print("Distance is now set to: 15FT")
+                GPIO.output(LED_W, GPIO.HIGH)
+                Msg1.ClearSaved_Msg()
+
+
+            elif BT_Msg == 'STOP':
+                print("The bot will now stop")
+                GPIO.output(LED_B, GPIO.HIGH)
+                Msg1.ClearSaved_Msg()
+            
             else:
                 Msg1.setHighLow_Y(not Flag_Y)
                 Msg1.setHighLow_G(not Flag_G)
+                GPIO.output(LED_W, GPIO.LOW)
+                GPIO.output(LED_B, GPIO.LOW)
             print (BT_Msg)
             time.sleep(1/2)
     except KeyboardInterrupt:

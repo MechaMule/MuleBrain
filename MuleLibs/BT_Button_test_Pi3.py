@@ -14,7 +14,7 @@ def data_received(data):
     global save_msg         # Need access to the message so I made it a global
     save_msg = data         # There may be a way to save message through a function call
                             # that is external to the data_received() function
-                            # I'll try that tomorrow.
+                            # I'll try that tomorrow.w
 save_msg = "Nothing meaningful"
 Server = BluetoothServer(data_received)
 
@@ -24,12 +24,12 @@ try:
 
     while True:
         #print('Saved string: {}'.format(Save_Str))
-        if save_msg == 'GP27_LIT':
+        if save_msg == 'DIST_5FT':
             print("Going to Distance options")
             GPIO.output(LED_G, GPIO.HIGH)
             save_msg = "Cleared Previous G Message"
             
-        elif save_msg == 'GP17_LIT':
+        elif save_msg == 'DIST_10FT':
             print("Going to Calibration settings")
             GPIO.output(LED_Y, GPIO.HIGH)
             save_msg = "Cleared Previous Y Message"

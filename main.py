@@ -15,6 +15,7 @@ import Keyboard
 import threading
 import time
 import Signal
+from BT_Test_ClassVersion import *
 import Echo
 from MuleMotor_Functions import MOTOR
 ##from bluedot.btcomm import BluetoothServer
@@ -71,28 +72,28 @@ if __name__ == '__main__':
     mtr = MOTOR(p_mtrL, p_mtrR, p_dirL, p_dirR)
 
     #create bt server host
-    bts = BluetoothServer(bt_recieved)
+    bts = SendMsg(q1)
 
     try:
         while(closer.is_set()==False):
-            L = 2*echoL.GetInch()
-            R = 2*echoR.GetInch()
-            l = 0
-            r = 0
-            if L < R:
-                l = 20
-            if R < L:
-                r = 20
-            print(L, "||", R)
-            if(L <= 12 or L >= 60):
-                mtr.Motor_L(0)
-            else:
-                mtr.Motor_L(l+MapRange(L, 12, 60, 30, 70))
-                
-            if(R <= 12 or R >= 60):
-                mtr.Motor_R(0)
-            else:
-                mtr.Motor_R(r+MapRange(L, 12, 60, 30, 70))
+##            L = 2*echoL.GetInch()
+##            R = 2*echoR.GetInch()
+##            l = 0
+##            r = 0
+##            if L < R:
+##                l = 20
+##            if R < L:
+##                r = 20
+##            print(L, "||", R)
+##            if(L <= 12 or L >= 60):
+##                mtr.Motor_L(0)
+##            else:
+##                mtr.Motor_L(l+MapRange(L, 12, 60, 30, 70))
+##                
+##            if(R <= 12 or R >= 60):
+##                mtr.Motor_R(0)
+##            else:
+##                mtr.Motor_R(r+MapRange(L, 12, 60, 30, 70))
             time.sleep(0.5)
     except KeyboardInterrupt:
         pass
