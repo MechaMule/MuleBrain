@@ -10,8 +10,7 @@ import RPi.GPIO as GPIO
 #GPIO.setup(LED_G, GPIO.OUT, initial=GPIO.LOW)
 
 class SendMsg:
-    def __init__(self, q, LED_Y=25, LED_G=27, saved_msg="NO_MESSAGE", GPIO_mode=GPIO.BCM):
-        self.q = q
+    def __init__(self, LED_Y=25, LED_G=27, saved_msg="NO_MESSAGE", GPIO_mode=GPIO.BCM):
         self.LED_Y = LED_Y
         self.LED_G = LED_G
         self.saved_msg = saved_msg
@@ -54,7 +53,6 @@ class SendMsg:
 
     def data_received(self, data):
         print("Received", data)
-        self.q.put(data)
         self.saved_msg = data
 
 
