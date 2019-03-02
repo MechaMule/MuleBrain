@@ -25,7 +25,11 @@ from MuleMotor_Functions import MOTOR
 def qworker(stopper):
     """Thread Method to process the queue"""
     while (stopper.is_set() == False):
-        print(q1.get())
+        event = q1.get()
+        if event == "STOP":
+            stopper.set()
+        elif event == "DIST_5"
+        print(event)
         q1.task_done()
 
 def MapRange(x, in_min, in_max, out_min, out_max):
@@ -46,7 +50,6 @@ if __name__ == '__main__':
     p_dirR = 20
     p_echoL = 26
     p_echoR = 19
-    
 
     #creating the trigger signal
     trig = Signal.Generator(closer, p_trig, 10E-6, 60E-3)
@@ -88,7 +91,7 @@ if __name__ == '__main__':
                 mtr.Motor_L(0)
             else:
                 mtr.Motor_L(l+MapRange(L, 12, 60, 30, 70))
-                
+
             if(R <= 12 or R >= 60):
                 mtr.Motor_R(0)
             else:
