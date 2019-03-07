@@ -14,10 +14,10 @@ BUTTON_Y = 17
 BUTTON_W = 26
 BUTTON_B = 22
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(BUTTON_G, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(BUTTON_Y, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(BUTTON_W, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(BUTTON_B, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(BUTTON_G, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(BUTTON_Y, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(BUTTON_W, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(BUTTON_B, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 received = False
 
@@ -50,8 +50,8 @@ GPIO.add_event_detect(BUTTON_B, GPIO.FALLING, callback=ButtonCallback_B, bouncet
 
 
 if __name__ == "__main__":
-
-    PiZero_Client = BluetoothClient("johnpi", data_received)
+    print("============= Starting bluetooth button activation test ============")
+    PiZero_Client = BluetoothClient("jamespi", data_received)
 
     try:
         print("============= Starting bluetooth button activation test ============")
@@ -59,22 +59,24 @@ if __name__ == "__main__":
 
         while True:
             
-            if GPIO.input(BUTTON_G) == GPIO.HIGH:               
-                print('Green button was pressed, should send message')
-            elif GPIO.input(BUTTON_Y) == GPIO.HIGH:
+            if GPIO.input(BUTTON_Y) == GPIO.LOW:               
+                print('Yellow button was pressed, should send message')
+
+            elif GPIO.input(BUTTON_Y) == GPIO.LOW:
                 
                 print('Yellow button was pressed, should send message')
 
-            elif GPIO.input(BUTTON_W) == GPIO.HIGH:
+            elif GPIO.input(BUTTON_W) == GPIO.LOW:
                 print('White button was pressed, should send message')
 
-            elif GPIO.input(BUTTON_B) == GPIO.HIGH:
+            elif GPIO.input(BUTTON_B) == GPIO.LOW:
                 print('Black button was pressed, should send message')
             
             if received == True:
                 break
 
             print("Y_button status: {} | G_button status: {} | W_button status: {} | B_button status: {}".format(GPIO.input(BUTTON_Y), GPIO.input(BUTTON_G), GPIO.input(BUTTON_W), GPIO.input(BUTTON_B)))
+            #print("Y_Button status: {}".format(GPIO.input(BUTTON_Y)))
 
             time.sleep(1/2)
             
