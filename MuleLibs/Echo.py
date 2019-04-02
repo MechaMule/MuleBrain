@@ -87,8 +87,8 @@ class ECHO(object):
 if __name__ == '__main__':
     import Signal
     p_trig = 5
-    p_echoL = 26
-    p_echoR = 19
+    p_echoL = 13
+    p_echoR = 24
     closer = threading.Event()
 
     trig = Signal.Generator(closer, p_trig, 10E-6, 60E-3)
