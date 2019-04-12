@@ -19,6 +19,7 @@ import Echo
 from Mule import *
 from MuleMotor_Functions import MOTOR
 from bluedot.btcomm import BluetoothServer
+import RPi.GPIO as IO
 
 #===============================================================================
 # Methods
@@ -35,9 +36,11 @@ def qworker(stopper):
             
         elif event == "STOP" or event == "0":
             stopper.set()
-            
-        elif event == "go":
-            mule.pulser.Pulse()
+
+        elif event == "go1":
+            bts.send("go1")
+        elif event == "go2":
+            mule.pulser.Pulse(100)
             
         elif event == "DIST_5" or event == "1":
             pass
@@ -52,6 +55,10 @@ def MapRange(x, in_min, in_max, out_min, out_max):
 def bt_received(data):
 ##    bts.send(data)
     q1.put(data)
+
+def cb(channel):
+##    p.Pulse(1000)
+    mule.trigger.start()
     
 #===============================================================================
 # MAIN MAIN
@@ -61,7 +68,7 @@ if __name__ == '__main__':
     #initialize killswitch and pins for mule
     killswitch = threading.Event()
     mule = MULE(26, 19, 13, 6, \
-                17, 27, 22, 23, 24, \
+                12, 21, 22, 23, 24, \
                 killswitch)
 
     #creating threaded queue
@@ -86,15 +93,26 @@ if __name__ == '__main__':
 ##        while(btsuccess == False and killswitch.is_set()==False):
 ##            pass
 ##        mule.trigger.start() #btsucess true so start trigger.
+##        while(killswitch.is_set()==False):
+##            time.sleep(0.5)
+##            print(2*mule.echoL1.GetInch())
+
+
+        ####RANDO TEST
+##        p = Signal.Pulser(killswitch, 12, 10E-6, 60E-3)
+        IO.setwarnings(False)
+        IO.setmode(IO.BCM)
+        IO.setup(19, IO.IN, pull_up_down=IO.PUD_DOWN)
+
+        IO.add_event_detect(19, IO.RISING, cb, 300)
         while(killswitch.is_set()==False):
             time.sleep(0.5)
-            print(2*mule.echoL1.GetInch())
 
     except KeyboardInterrupt:
         pass
     finally:
         print("Closing Main")
-        mule.MTR.Halt()
         killswitch.set()
         mule.clean()
+        IO.cleanup((26))
         time.sleep(.5)

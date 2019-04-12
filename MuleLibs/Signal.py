@@ -118,7 +118,7 @@ class Pulser(threading.Thread):
     def Work(self):
         """Working thread for creating signal"""
         while (self.killswitch.is_set() == False):
-            event_is_set = self.pulseit.wait()
+            self.pulseit.wait()
             for i in range(0, self.amnt):
                 time.sleep(self.time_low)
                 IO.output(self.pin, IO.HIGH)

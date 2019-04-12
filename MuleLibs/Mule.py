@@ -41,23 +41,23 @@ class MULE(object):
         self.trig_lo = trig_lo
 
         #ping stuff. need to start trigger. echo works right away.
-##        self.trigger = Signal.Generator(self.killswitch, self.pin_trig, self.trig_hi, self.trig_lo)
-        self.pulser = Signal.Pulser(self.killswitch, self.pin_trig, 0.5, 0.5)
-        self.echoL1 = Echo.ECHO(self.pin_echoL1)
+        self.trigger = Signal.Generator(self.killswitch, self.pin_trig, self.trig_hi, self.trig_lo)
+##        self.pulser = Signal.Pulser(self.killswitch, self.pin_trig, self.trig_hi, self.trig_lo)
+##        self.echoL1 = Echo.ECHO(self.pin_echoL1)
 ##        self.echoR1 = Echo.ECHO(self.pin_echoR1)
 ##        self.echoL2 = Echo.ECHO(self.pin_echoL2)
 ##        self.echoR2 = Echo.ECHO(self.pin_echoR2)
 
         #motor
-        self.MTR = MOTOR(self.pin_mtrL, self.pin_mtrR, self.pin_dirL, self.pin_dirR)
+##        self.MTR = MOTOR(self.pin_mtrL, self.pin_mtrR, self.pin_dirL, self.pin_dirR)
         
     def clean(self):
         print("Initiating mule cleansing.")
-        self.echoL1.clean()
+##        self.echoL1.clean()
 ##        self.echoL2.clean()
 ##        self.echoR1.clean()
 ##        self.echoR2.clean()
-        self.MTR.clean()
+##        self.MTR.clean()
             
         
         
