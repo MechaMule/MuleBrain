@@ -14,76 +14,62 @@ import time
 from MuleMotor_Functions import MOTOR
 
 class MULE(object):
-    def __init__(self, pin_dirL, pin_dirR, pin_mtrL, pin_mtrR, \
-                 pin_trig, pin_echoL1, pin_echoL2, pin_echoR1, pin_echoR2, \
-                 killswitch, speed_default=20, speed_max=100, \
-                 speed_max_offset=30, dist_bot=5, \
-                 trig_hi=10E-6, trig_lo=60E-3):
-
+    """Holds pins and setings for Mule.
+    Parameters:
+    (1) killswitch : Thread event to close all threads
+    (2) pin_MTRS   : Array holding motor pins. enL, enR, dirL, dirR
+    (3) pin_trig   : Int. Trigger pin
+    (4) pin_ECHOS  : Array. Holds all echo pins. Ideally from left to right
+    """
+    def __init__(self, killswitch, pin_MTRS, pin_trig, pin_ECHOS, trig_hi=20E-6, trig_lo=120E-3):
         #store pins. might make them enum arrays.
-        self.pin_dirL = pin_dirL
-        self.pin_dirR = pin_dirR
-        self.pin_mtrL = pin_mtrL
-        self.pin_mtrR = pin_mtrR
-        self.pin_trig = pin_trig
-        self.pin_echoL1 = pin_echoL1
-        self.pin_echoL2 = pin_echoL2
-        self.pin_echoR1 = pin_echoR1
-        self.pin_echoR2 = pin_echoR2
         self.killswitch = killswitch
-
+        self.pin_MTRS = pin_MTRS
+        self.pin_trig = pin_trig
+        self.pin_ECHOS = pin_ECHOS
+        
         #main settings for 
-        self.speed_default = speed_default
-        self.speed_max = speed_max
-        self.speed_max_offset = speed_max_offset
-        self.dist_bot = dist_bot
         self.trig_hi = trig_hi
         self.trig_lo = trig_lo
-
+        
         #ping stuff. need to start trigger. echo works right away.
-        self.trigger = Signal.Generator(self.killswitch, self.pin_trig, self.trig_hi, self.trig_lo)
-##        self.pulser = Signal.Pulser(self.killswitch, self.pin_trig, self.trig_hi, self.trig_lo)
-##        self.echoL1 = Echo.ECHO(self.pin_echoL1)
-##        self.echoR1 = Echo.ECHO(self.pin_echoR1)
-##        self.echoL2 = Echo.ECHO(self.pin_echoL2)
-##        self.echoR2 = Echo.ECHO(self.pin_echoR2)
-
+        self.pulser = Signal.Pulser(self.killswitch, self.pin_trig, self.trig_hi, self.trig_lo)
+        for i in range(0, len(self.pin_ECHOS)):
+            self.echo[i] = Echo.ECHO(self.pin_ECHOS[i])
+            
         #motor
-##        self.MTR = MOTOR(self.pin_mtrL, self.pin_mtrR, self.pin_dirL, self.pin_dirR)
+        self.MTR = MOTOR(self.pin_MTRS[0], self.pin_MTRS[1], self.pin_MTRS[2], self.pin_MTRS[3])
         
     def clean(self):
+        """Cleans up the echo and motor pins"""
         print("Initiating mule cleansing.")
-##        self.echoL1.clean()
-##        self.echoL2.clean()
-##        self.echoR1.clean()
-##        self.echoR2.clean()
-##        self.MTR.clean()
+        for i in range(0, len(self.pin_ECHOS)):
+            self.echo[i].clean()
+        self.MTR.clean()
             
         
         
 
 if __name__ == '__main__':
     print("Mule says hi")
-    killswitch = threading.Event()
-    mule = MULE(26, 19, 13, 6, \
-                17, 27, 22, 23, 24, \
-                killswitch)
-##    mule.trigger.start()
-    mule.MTR.Halt()
-    mule.MTR.Motor_L(-30)
-    mule.MTR.Motor_R(-80)
-
     try:
+        killswitch = threading.Event()
+        mule = MULE(killswitch, [13,6,26,19], 17, [])
+        mule.MTR.Halt()
+        mule.MTR.Motor_L(-30)
+        mule.MTR.Motor_R(-80)
         while True:
-            input("enter to pulse")
-            mule.pulser.Pulse(3)
+            time.sleep(1)
+        
     except KeyboardInterrupt:
-        pass
+        print("pressed ctrl+c")
     finally:
+        print("goodbye")
         mule.MTR.Halt()
         killswitch.set()
         mule.clean()
         time.sleep(0.5)
+
             
     
 
