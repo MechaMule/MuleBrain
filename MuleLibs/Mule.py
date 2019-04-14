@@ -27,40 +27,42 @@ class MULE(object):
         self.pin_MTRS = pin_MTRS
         self.pin_trig = pin_trig
         self.pin_ECHOS = pin_ECHOS
-        
-        #main settings for 
+
+        #main settings for
         self.trig_hi = trig_hi
         self.trig_lo = trig_lo
-        
+
         #ping stuff. need to start trigger. echo works right away.
-        self.pulser = Signal.Pulser(self.killswitch, self.pin_trig, self.trig_hi, self.trig_lo)
+        # self.transmit = Signal.Generator(self.killswitch, self.pin_trig, self.trig_hi, self.trig_lo)
+        self.transmit = Signal.Pulser(self.killswitch, self.pin_trig, self.trig_hi, self.trig_lo)
         for i in range(0, len(self.pin_ECHOS)):
             self.echo[i] = Echo.ECHO(self.pin_ECHOS[i])
-            
+
         #motor
         self.MTR = MOTOR(self.pin_MTRS[0], self.pin_MTRS[1], self.pin_MTRS[2], self.pin_MTRS[3])
-        
+
     def clean(self):
         """Cleans up the echo and motor pins"""
         print("Initiating mule cleansing.")
         for i in range(0, len(self.pin_ECHOS)):
             self.echo[i].clean()
         self.MTR.clean()
-            
-        
-        
+        self.transmit.clean()
+
+
+
 
 if __name__ == '__main__':
     print("Mule says hi")
     try:
         killswitch = threading.Event()
-        mule = MULE(killswitch, [13,6,26,19], 17, [])
+        mule = MULE(killswitch, [13,6,26,19], 17, [23,24])
         mule.MTR.Halt()
         mule.MTR.Motor_L(-30)
         mule.MTR.Motor_R(-80)
         while True:
             time.sleep(1)
-        
+
     except KeyboardInterrupt:
         print("pressed ctrl+c")
     finally:
@@ -69,8 +71,3 @@ if __name__ == '__main__':
         killswitch.set()
         mule.clean()
         time.sleep(0.5)
-
-            
-    
-
-        
