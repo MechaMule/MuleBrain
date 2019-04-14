@@ -56,7 +56,7 @@ if __name__ == '__main__':
     print("Mule says hi")
     try:
         killswitch = threading.Event()
-        mule = MULE(killswitch, [13,6,26,19], 17, [23,24])
+        mule = MULE(killswitch, [13,6,26,19], 17, [23,20])
         mule.MTR.Halt()
         mule.MTR.Motor_L(-30)
         mule.MTR.Motor_R(-80)
