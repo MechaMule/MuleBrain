@@ -31,7 +31,7 @@ class ECHO(object):
         self.t_start = 0    #just used for holding time when echo start
         self.TOF = 0    #raw time of flight in seconds
         self.dist = 0   #raw distance in meters
-        
+
 
         self.speed_of_sound = 331.3 * math.sqrt(1+(self.temp / 273.15)) #m/s
         self.timeout = 6 / self.speed_of_sound
@@ -62,12 +62,8 @@ class ECHO(object):
                 self.i+=1
                 self.dist = sum(self.arr)/len(self.arr)
 ##                self.dist = self.TOF * ((self.speed_of_sound)/(2)) #note div 2
-                
-##            self.TOF = time.time() - self.t_start
-##            if(self.TOF < self.timeout):
-##                self.dist = self.TOF * ((self.speed_of_sound)/(2)) #note div 2.
 
-    
+
     def GetMeters(self):
         return round(self.dist, 5)
 
@@ -76,7 +72,7 @@ class ECHO(object):
 
     def GetInch(self):
         return round(self.dist * 3.28084 * 12, 5)
-    
+
     def clean(self):
         """Resets and cleans up the echo pin"""
         IO.cleanup((self.pin))
@@ -87,8 +83,8 @@ class ECHO(object):
 if __name__ == '__main__':
     import Signal
     p_trig = 5
-    p_echoL = 26
-    p_echoR = 19
+    p_echoL = 13
+    p_echoR = 24
     closer = threading.Event()
 
     trig = Signal.Generator(closer, p_trig, 10E-6, 60E-3)
@@ -107,15 +103,3 @@ if __name__ == '__main__':
         echoL.clean()
         echoR.clean()
         print("exiting")
-            
-    
-##    p = 19
-##    yaaah = ECHO(p)
-##    
-##    try:
-##        while True:
-##            print(yaaah.cm*.393701)
-##            time.sleep(1)
-##    except KeyboardInterrupt:
-##        yaaah.clean()
-##        print("exit")
