@@ -23,7 +23,8 @@ class MULE(object):
     (3) pin_trig   : Int. Trigger pin
     (4) pin_ECHOS  : Array. Holds all echo pins. Ideally from left to right
     """
-    def __init__(self, killswitch, pin_MTRS, pin_trig, pin_ECHOS, pin_nrf_int = 21, trig_hi=20E-6, trig_lo=120E-3, nrf_address=0xABCDEF):
+    def __init__(self, killswitch, pin_MTRS, pin_trig, pin_ECHOS, pin_nrf_int = 21, \
+                 trig_hi=20E-6, trig_lo=120E-3, nrf_address=0xABCDEF):
         #store pins. might make them enum arrays.
         self.killswitch = killswitch
         self.pin_MTRS = pin_MTRS
@@ -39,6 +40,7 @@ class MULE(object):
 
         #ping stuff. need to start trigger. echo works right away.
 ##        self.transmit = Signal.Generator(self.killswitch, self.pin_trig, self.trig_hi, self.trig_lo)
+##        self.transmit.start()
         self.transmit = Signal.Pulser(self.killswitch, self.pin_trig, self.trig_hi, self.trig_lo)
         for i in range(0, len(self.pin_ECHOS)):
             self.echo.append(Echo.ECHO(self.pin_ECHOS[i]))
@@ -61,6 +63,7 @@ class MULE(object):
         
 
     def nrf_cb(self, channel):
+        """callback function for nrf interrupt"""
         self.transmit.Pulse(1)
         self.nrf.read(self.nrf.getDynamicPayloadSize())
 ##        print("message: ", self.nrf.read(self.nrf.getDynamicPayloadSize()))
@@ -72,23 +75,19 @@ class MULE(object):
             self.echo[i].clean()
         self.MTR.clean()
         IO.cleanup((21))
-        self.transmit.clean()
-
-
 
 
 if __name__ == '__main__':
     print("Mule says hi")
     try:
         killswitch = threading.Event()
-        mule = MULE(killswitch, [13,6,26,19], 17, [])
+        mule = MULE(killswitch, [13,6,26,19], 17, [23,20], 21, 20E-6, 0)
         mule.MTR.Halt()
-        mule.transmit.start()
-        mule.MTR.Motor_L(-50)
-        mule.MTR.Motor_R(-50)
+##        mule.MTR.Motor_L(-50)
+##        mule.MTR.Motor_R(-50)
         while True:
-            time.sleep(1)
-##            print(mule.echo[0].GetInch())
+            time.sleep(0.5)
+            print("LEFT: ",2*mule.echo[0].GetInch()," <||> RIGHT: ", 2*mule.echo[1].GetInch())
 
     except KeyboardInterrupt:
         print("pressed ctrl+c")

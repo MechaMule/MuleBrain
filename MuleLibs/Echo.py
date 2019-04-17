@@ -37,7 +37,7 @@ class ECHO(object):
         self.timeout = 6 / self.speed_of_sound
         self.TOF_1m = 1 / self.speed_of_sound
 
-        self.arr = [0]*10
+        self.arr = [1]*5
         self.i = 0
 
         IO.setwarnings(False)
@@ -50,7 +50,7 @@ class ECHO(object):
     def callback(self, channel):
         """Function to be called caught a pin state changesself.
         Calculates time of flight and distance in meters"""
-        if(self.i >=10):
+        if(self.i >=len(self.arr)):
             self.i=0
         if (IO.input(self.pin) == IO.HIGH):
             self.t_start = time.time()
@@ -58,7 +58,7 @@ class ECHO(object):
             tof = time.time() - self.t_start
             if((self.TOF == 0 and tof<self.timeout) or tof < self.TOF + self.TOF_1m):
                 self.TOF = tof
-                self.arr[self.i]=self.TOF * ((self.speed_of_sound)/(2)) #note div 2
+                self.arr[self.i]=self.TOF * ((self.speed_of_sound)/2) #note div 2
                 self.i+=1
                 self.dist = sum(self.arr)/len(self.arr)
 ##                self.dist = self.TOF * ((self.speed_of_sound)/(2)) #note div 2
@@ -82,9 +82,9 @@ class ECHO(object):
 #===============================================================================
 if __name__ == '__main__':
     import Signal
-    p_trig = 5
-    p_echoL = 13
-    p_echoR = 24
+    p_trig = 17
+    p_echoL = 23
+    p_echoR = 20
     closer = threading.Event()
 
     trig = Signal.Generator(closer, p_trig, 10E-6, 60E-3)
