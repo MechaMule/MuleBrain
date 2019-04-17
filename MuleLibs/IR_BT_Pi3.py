@@ -15,12 +15,12 @@ try:
     print("==================== Starting Test =====================")
 
     while True:
-        if save_msg == '':
+        if save_msg == 'SIGNAL_FOUND_L':
             print("Corner/obstacle detected left") # Lost signal Left, either corner or obstacle detected
-        elif save_msg == '':
+        elif save_msg == 'SIGNAL_FOUND_R':
             print("Corner/obstacle detected right") # found obstacle/corner right side
 
-        elif save_msg == '':
+        elif save_msg == 'BOTH_FOUND':
             print("Target located in front")
 
         print(save_msg)
