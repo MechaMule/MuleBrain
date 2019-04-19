@@ -24,7 +24,7 @@ class MULE(object):
     (4) pin_ECHOS  : Array. Holds all echo pins. Ideally from left to right
     """
     def __init__(self, killswitch, pin_MTRS, pin_trig, pin_ECHOS, pin_nrf_int = 21, \
-                 trig_hi=20E-6, trig_lo=120E-3, nrf_address=0xABCDEF):
+                 trig_hi=20E-6, trig_lo=120E-3, nrf_address=0xA1):
         #store pins. might make them enum arrays.
         self.killswitch = killswitch
         self.pin_MTRS = pin_MTRS
@@ -58,14 +58,15 @@ class MULE(object):
 
         IO.setwarnings(False)
         IO.setmode(IO.BCM)
-        IO.setup(self.pin_nrf_int, IO.IN, pull_up_down=IO.PUD_UP)
+        IO.setup(self.pin_nrf_int, IO.IN, pull_up_down=IO.PUD_DOWN)
         IO.add_event_detect(self.pin_nrf_int, IO.FALLING, callback=self.nrf_cb)
         
 
     def nrf_cb(self, channel):
         """callback function for nrf interrupt"""
         self.transmit.Pulse(1)
-        self.nrf.read(self.nrf.getDynamicPayloadSize())
+        while self.nrf.available():
+            self.nrf.read(self.nrf.getDynamicPayloadSize())
 ##        print("message: ", self.nrf.read(self.nrf.getDynamicPayloadSize()))
 
     def clean(self):
@@ -81,13 +82,13 @@ if __name__ == '__main__':
     print("Mule says hi")
     try:
         killswitch = threading.Event()
-        mule = MULE(killswitch, [13,6,26,19], 17, [23,20], 21, 20E-6, 0)
+        mule = MULE(killswitch, [13,6,26,19], 18, [23], 21, 100E-6, 0)
         mule.MTR.Halt()
 ##        mule.MTR.Motor_L(-50)
 ##        mule.MTR.Motor_R(-50)
         while True:
             time.sleep(0.5)
-            print("LEFT: ",2*mule.echo[0].GetInch()," <||> RIGHT: ", 2*mule.echo[1].GetInch())
+            print("LEFT: ",2*mule.echo[0].GetInch())#," <||> RIGHT: ", 2*mule.echo[1].GetInch())
 
     except KeyboardInterrupt:
         print("pressed ctrl+c")
