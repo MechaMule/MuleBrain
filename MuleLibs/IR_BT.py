@@ -28,29 +28,39 @@ def data_received(data):
     global received
     received = True
 
+# For now the callbacks have print statements to check to see if they
+#are being accessed
 def IRL_Callback(channel):
     if (GPIO.input(IR_L) == GPIO.LOW) and (GPIO.input(IR_R) == GPIO.LOW):
         #PiZero_Client.send(Both_Detect)
-        print('Filler_L1_R1')
-    elif (GPIO.input(IR_L) == GPIO.HIGH):       #Need to do a check for both HIGH and then move this statement down the
+        print('Found_BOTH_L_Callback')
+        
+    elif (GPIO.input(IR_L) == GPIO.HIGH) and (GPIO.input(IR_R) == GPIO.HIGH):
+        print('Lost BOTH_L_Callback')
+        
+    elif (GPIO.input(IR_L) == GPIO.HIGH) and (GPIO.input(IR_R) == GPIO.LOW):       #Need to do a check for both HIGH and then move this statement down the
         #PiZero_Client.send(Left_Detect)        #of if statements
-        print('Filler_L2')
+        print('Lost LEFT_L_Callback')
     else:
         #PiZero_Client.send(Left_Lost)
-        print('Filler_L3')
+        print('Lost_RIGHT_L_Callback')
 
         
 def IRR_Callback(channel):
     if (GPIO.input(IR_R) == GPIO.LOW) and (GPIO.input(IR_L) == GPIO.LOW):
         #PiZero_Client.send(Both_Detect)
-        print('Filler_R1_L1')
-    elif (GPIO.input(IR_R) == GPIO.HIGH):
+        print('Found BOTH_R_Callback')
+
+    elif (GPIO.input(IR_R) == GPIO.HIGH) and (GPIO.input(IR_L) == GPIO.HIGH):
+        print('Lost BOTH_R_Callback')
+    
+    elif (GPIO.input(IR_R) == GPIO.HIGH) and (GPIO.input(IR_L) == GPIO.LOW):
         #PiZero_Client.send(Right_Detect)
-        print('Filler_R2')
+        print('Lost RIGHT_R_callback')
         
     else:
         #PiZero_Client.send(Right_Lost)
-        print('Filler_R3')
+        print('Lost LEFT_R_Callback')
 
 
 GPIO.add_event_detect(IR_L, GPIO.BOTH, callback=IRL_Callback, bouncetime=300)
@@ -63,18 +73,18 @@ if __name__ == "__main__":
     try:
         
         while True:
-            #Signals are inverted 
-            if (GPIO.input(IR_L) == GPIO.LOW) and (GPIO.input(IR_R) == GPIO.LOW):
-                print('Both sensors found signal')
-            
-            elif GPIO.input(IR_L) == GPIO.LOW:            
-                print('Only left found signal(HIGH), should send message') #these are
-                
-            elif GPIO.input(IR_R) == GPIO.LOW:
-                print('Only right found signal(HIGH), message sent')
-                
-            else:
-                print('Both lost signal')
+#            #Signals are inverted 
+#            if (GPIO.input(IR_L) == GPIO.LOW) and (GPIO.input(IR_R) == GPIO.LOW):
+#                print('Both sensors found signal')
+#            
+#            elif GPIO.input(IR_L) == GPIO.LOW:            
+#                print('Only left found signal(HIGH), should send message') #these are
+#                
+#            elif GPIO.input(IR_R) == GPIO.LOW:
+#                print('Only right found signal(HIGH), message sent')
+#                
+#            else:
+#                print('Both lost signal')
             #This displays the status of booth sensors 
             print("L_Status: {} | R_Status: {}".format( GPIO.input(IR_L),  GPIO.input(IR_R)))
 
