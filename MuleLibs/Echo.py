@@ -31,13 +31,15 @@ class ECHO(object):
         self.t_start = 0    #just used for holding time when echo start
         self.TOF = 0    #raw time of flight in seconds
         self.dist = 0   #raw distance in meters
+        self.offset = 2.7178
 
 
         self.speed_of_sound = 331.3 * math.sqrt(1+(self.temp / 273.15)) #m/s
-        self.timeout = 6 / self.speed_of_sound
-        self.TOF_1m = 1 / self.speed_of_sound
+##        self.timeout = 6 / self.speed_of_sound
+        self.timeout = 400E-3 #400ms timeout. put this close to UST intervals
+        self.TOF_MAX = (1.8288+self.offset)/self.speed_of_sound #1.8288meters filter.
 
-        self.arr = [1]*5
+        self.arr = [1+self.offset]*5
         self.i = 0
 
         IO.setwarnings(False)
@@ -56,16 +58,19 @@ class ECHO(object):
             self.t_start = time.time()
         elif (IO.input(self.pin) == IO.LOW):
             tof = time.time() - self.t_start
-            if((self.TOF == 0 and tof<self.timeout) or tof < self.TOF + self.TOF_1m):
+            if((self.TOF == 0 and tof<self.timeout) or (tof < self.TOF + self.TOF_MAX)):
                 self.TOF = tof
-                self.arr[self.i]=self.TOF * ((self.speed_of_sound)/2) #note div 2
+                self.arr[self.i]=self.TOF * ((self.speed_of_sound)) #note div 2
                 self.i+=1
-                self.dist = sum(self.arr)/len(self.arr)
+                self.dist = (sum(self.arr)/len(self.arr)) - self.offset
 ##                self.dist = self.TOF * ((self.speed_of_sound)/(2)) #note div 2
 
 
     def GetMeters(self):
         return round(self.dist, 5)
+    
+    def GetCM(self):
+        return round(self.dist/1E-3, 5)
 
     def GetFeet(self):
         return round(self.dist * 3.28084, 5)
@@ -80,26 +85,16 @@ class ECHO(object):
 #===============================================================================
 # Module Main
 #===============================================================================
-if __name__ == '__main__':
-    import Signal
-    p_trig = 17
-    p_echoL = 23
-    p_echoR = 20
-    closer = threading.Event()
-
-    trig = Signal.Generator(closer, p_trig, 10E-6, 60E-3)
-    trig.start()
-
-    echoL = ECHO(p_echoL)
-    echoR = ECHO(p_echoR)
-
+if __name__ == '__main__'
+    pin = 20
     try:
+        e = Echo.ECHO(pin)
         while True:
-            print(2*echoL.GetInch(), "||", 2*echoR.GetInch())
             time.sleep(0.5)
     except KeyboardInterrupt:
         pass
     finally:
-        echoL.clean()
-        echoR.clean()
         print("exiting")
+        e.clean()
+        time.sleep(0.5)
+        

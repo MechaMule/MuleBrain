@@ -14,10 +14,7 @@ from queue import Queue
 import Keyboard
 import threading
 import time
-import Signal
-import Echo
 from Mule import *
-from MuleMotor_Functions import MOTOR
 from bluedot.btcomm import BluetoothServer
 
 #===============================================================================
@@ -50,9 +47,7 @@ if __name__ == '__main__':
     print("Mule starting up!")
     #initialize killswitch and pins for mule
     killswitch = threading.Event()
-    mule = MULE(26, 19, 13, 6, \
-                12, 21, 22, 23, 24, \
-                killswitch)
+    mule = MULE(killswitch, [13,6,26,19], [20])
 
     #creating threaded queue
     q1 = Queue(maxsize=0)
@@ -67,9 +62,6 @@ if __name__ == '__main__':
 
     #create bt server host
     bts = BluetoothServer(bt_received)
-
-    #variables
-    btsuccess = False
 
     try:
         while True:
