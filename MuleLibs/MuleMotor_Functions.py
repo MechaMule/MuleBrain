@@ -85,9 +85,9 @@ class MOTOR(object):
 
 if __name__ == "__main__":
     print("Motor Test Start")
-    mtr = MOTOR(18, 12, 20, 16)
-    mtr.Motor_R(30)
-    mtr.Motor_L(30)
+    mtr = MOTOR(13, 6, 26, 19)
+##    mtr.Motor_R(70)
+    mtr.Motor_L(50)
     try:
         input("enter to stop")
     except KeyboardInterrupt:

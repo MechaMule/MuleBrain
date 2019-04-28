@@ -43,15 +43,37 @@ class MULE(object):
         self.MTR.clean()
 
 
+
 if __name__ == '__main__':
     print("Mule says hi")
+    def MapRange(x, in_min, in_max, out_min, out_max):
+        return (out_min + ( ((out_max-out_min)*(x-in_min))/(in_max-in_min) ))
     try:
         killswitch = threading.Event()
-        mule = MULE(killswitch, [13,6,26,19], [20])
+        mule = MULE(killswitch, [13,6,26,19], [20,21])
         mule.MTR.Halt()
+        dl = 0
+        dr = 0
+        minD = 2
+        maxD = 3
+        minspd = 20
+        maxspd = 98
         while True:
-            time.sleep(0.5)
-            print(mule.echo[0].GetInch())
+            time.sleep(0.1)
+            dl = mule.echo[0].GetFeet()
+            dr = mule.echo[1].GetFeet()
+            print("LEFT: ",dl,"   ||   RIGHT: ",dr)
+            if dl<minD:
+               mule.MTR.Motor_L(0)
+            elif dl<maxD:     
+                mule.MTR.Motor_L(MapRange(dl, minD, maxD, minspd, maxspd))
+                
+            if dr<minD:
+               mule.MTR.Motor_R(0)
+            elif dr<maxD:    
+                mule.MTR.Motor_R(MapRange(dr, minD, maxD, minspd, maxspd))
+            
+##            print(mule.echo[0].GetInch())
             
 
     except KeyboardInterrupt:
