@@ -39,7 +39,7 @@ class ECHO(object):
         self.timeout = 400E-3 #400ms timeout. put this close to UST intervals
         self.TOF_MAX = (1.8288+self.offset)/self.speed_of_sound #1.8288meters filter.
 
-        self.arr = [1+self.offset]*5
+        self.arr = [0]*5
         self.i = 0
 
         IO.setwarnings(False)

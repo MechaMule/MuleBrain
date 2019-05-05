@@ -47,9 +47,10 @@ class MULE(object):
 
 if __name__ == '__main__':
     print("Mule says hi")
+    import math
     def MapRange(x, old, new):
         if x<=old[0]:
-            return new[0]
+            return 0
         elif x>=old[1]:
             return new[1]
         return(new[0] + ( ((new[1]-new[0])*(x-old[0]))/(old[1]-old[0]) ))
@@ -59,21 +60,27 @@ if __name__ == '__main__':
         mule = MULE(killswitch, [13,6,26,19], [20,21])
         mule.MTR.Halt()
 
-        Mmax = 100
+        Mmax = 95-7
         Mmin = 0
-        dGoal = 5
-        Kp = 1.5
+        dGoal = 4
+        Kp = 10
         Bmax = Mmax - (Kp*mule.eargap)
 
         while True:
-            time.sleep(0.2)
+            time.sleep(.1)
             dL = mule.echo[0].GetFeet()
-            dL = mule.echo[1].GetFeet()
+            dR = mule.echo[1].GetFeet()
             dc = (dL+dR)/2
-            mb = MapRage(dc, [dGoal, dGoal+Kp], [Mmin,Mmax])
+            mb = MapRange(dc, [dGoal-2, dGoal+5], [Mmin,Mmax])
 
-            mL = mb + Kp*(0-(dL-dR))
-            mR = mb = Kp*(0-(dR-dL))
+            mL = mb + Kp*(0-(dR-dL))
+            mR = mb + Kp*(0-(dL-dR))
+
+            mule.MTR.Motor_L(mL)
+            mule.MTR.Motor_R(mR-7)
+
+            print("dL: ",dL,"   ||   dR: ",dR,"   ||   mL: ",round(mL,3),"  ||  mR: ",round(mR,3))
+            
 
 
     except KeyboardInterrupt:
