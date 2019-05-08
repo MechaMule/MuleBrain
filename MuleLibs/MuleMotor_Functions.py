@@ -32,6 +32,9 @@ class MOTOR(object):
         
         self.pwm_freq = pwm_freq
         self.IO_mode = IO_mode
+
+        self.SpL = 0
+        self.SpR = 0
         #set up the GPIO
         IO.setwarnings(False)
         IO.setmode(self.IO_mode)
@@ -55,6 +58,7 @@ class MOTOR(object):
             print("ERROR: Motor speed to high.")
             self.clean()
         else:
+            self.SpL = speed
             self.pwmL.SetDutyCycle(abs(speed))
 
     def Motor_R(self, speed):
@@ -70,12 +74,22 @@ class MOTOR(object):
             print("ERROR: Motor speed to high.")
             self.clean()
         else:
+            self.SpR = speed
             self.pwmR.SetDutyCycle(abs(speed))
 
     def Halt(self):
         """MOTOR method to stop the motor"""
         self.pwmL.SetDutyCycle(0)
         self.pwmR.SetDutyCycle(0)
+        self.SpR = 0
+        self.SpL = 0
+
+    def GetLSpeed(self):
+        return self.SpL
+    def GetRSpeed(self):
+        return self.SpR
+    def PrintSpeeds(self):
+        print("Left: ",round(self.SpL,3),"   ||   Right: ",round(self.SpR,3))  
 
     def clean(self):
         """Clean up the pins that were used."""

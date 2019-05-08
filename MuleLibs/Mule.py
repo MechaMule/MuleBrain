@@ -48,6 +48,7 @@ class MULE(object):
 if __name__ == '__main__':
     print("Mule says hi")
     import math
+    f = open("../Log/log.txt", "w+")
     def MapRange(x, old, new):
         if x<=old[0]:
             return 0
@@ -60,26 +61,36 @@ if __name__ == '__main__':
         mule = MULE(killswitch, [13,6,26,19], [20,21])
         mule.MTR.Halt()
 
-        Mmax = 95-7
-        Mmin = 0
-        dGoal = 4
-        Kp = 10
+        Mmax = 50
+        Mmin = 15
+        dGoal = 3
+        Kp = 2
         Bmax = Mmax - (Kp*mule.eargap)
+        idle = True
+        mL = mR = 0
 
+        time.sleep(.5)
         while True:
             time.sleep(.1)
             dL = mule.echo[0].GetFeet()
             dR = mule.echo[1].GetFeet()
             dc = (dL+dR)/2
-            mb = MapRange(dc, [dGoal-2, dGoal+5], [Mmin,Mmax])
+            if idle==True:
+                if dc >= dGoal +1:
+                    idle = False
+                else:
+                    pass #swivel?
+            else:
+                if dc >= dGoal:
+                    mb = MapRange(dc, [dGoal, dGoal+3], [Mmin,Bmax-1]) 
+                    mule.MTR.Motor_L(mb + Kp*(0-(dR-dL)))
+                    mule.MTR.Motor_R(mb + Kp*(0-(dL-dR)))
+                else:
+                    mule.MTR.Halt()
+                    idle = True
 
-            mL = mb + Kp*(0-(dR-dL))
-            mR = mb + Kp*(0-(dL-dR))
-
-            mule.MTR.Motor_L(mL)
-            mule.MTR.Motor_R(mR-7)
-
-            print("dL: ",dL,"   ||   dR: ",dR,"   ||   mL: ",round(mL,3),"  ||  mR: ",round(mR,3))
+            print("dL: ",dL,"   ||   dR: ",dR,"   ||   mL: ",round(mule.MTR.GetLSpeed(),3),"  ||  mR: ",round(mule.MTR.GetRSpeed(),3))
+            f.write(str(dL)+","+str(dR)+","+str(round(mule.MTR.GetLSpeed(),3))+","+str(round(mule.MTR.GetRSpeed(),3))+"\n")
             
 
 
@@ -87,6 +98,7 @@ if __name__ == '__main__':
         print("pressed ctrl+c")
     finally:
         print("goodbye")
+        f.close()
         mule.MTR.Halt()
         killswitch.set()
         mule.clean()
