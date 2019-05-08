@@ -30,10 +30,8 @@ def IRL_Callback(channel):
     # Depending on values, it lets us know if there is a corner or not
     # If GPIO.LOW then it means sensors have detected signal
     # If GPIO.HIGH then sensors have lost signal    
-    if (GPIO.input(IR_L) == GPIO.LOW) and (GPIO.input(IR_R) == GPIO.LOW):
-        print("{}_L_Callback".format(Both_Detect))
         
-    elif (GPIO.input(IR_L) == GPIO.HIGH) and (GPIO.input(IR_R) == GPIO.HIGH):
+    if (GPIO.input(IR_L) == GPIO.HIGH) and (GPIO.input(IR_R) == GPIO.HIGH):
         print("{}_L_Callback".format(Both_Lost))
         CornerLeft = False
         CornerRight = False
@@ -41,10 +39,10 @@ def IRL_Callback(channel):
     elif (GPIO.input(IR_L) == GPIO.HIGH) and (GPIO.input(IR_R) == GPIO.LOW):
         CornerRight = True
         print("{}_LEFT_L_Callback".format(Lost))
-    else:                               # Might not need this statument
+    #else:                               # Might not need this statument
         #PiZero_Client.send(Left_Lost)  # Because it is redudent with statement
-        print("{}_RIGHT_L_Callback".format(Lost))  # in IRR_Callback
-        CornerLeft = True
+       # print("{}_RIGHT_L_Callback".format(Lost))  # in IRR_Callback
+        #CornerLeft = True
 
 
 # IR sensor Interrupt for         
@@ -56,11 +54,8 @@ def IRR_Callback(channel):
     # Depending on values, it lets us know if there is a corner or not
     # If GPIO.LOW then it means sensors have detected signal
     # If GPIO.HIGH then sensors have lost signal
-    if (GPIO.input(IR_R) == GPIO.LOW) and (GPIO.input(IR_L) == GPIO.LOW):
-        print("{}_R_Callback".format(Both_Detect))
-
     #Lost both sensors here, will wait to detect one of the sides.
-    elif (GPIO.input(IR_R) == GPIO.HIGH) and (GPIO.input(IR_L) == GPIO.HIGH):
+    if (GPIO.input(IR_R) == GPIO.HIGH) and (GPIO.input(IR_L) == GPIO.HIGH):
         print("{}_R_Callback".format(Both_Lost))
         CornerLeft = False
         CornerRight = False
@@ -69,9 +64,9 @@ def IRR_Callback(channel):
         print("{}_RIGHT_R_callback".format(Lost))
         CornerLeft = True
         
-    else:
-        print("{}_LEFT_R_Callback".format(Lost))
-        CornerRight = True
+#    else:
+#        print("{}_LEFT_R_Callback".format(Lost))
+#        CornerRight = True
 
 
 GPIO.add_event_detect(IR_L, GPIO.BOTH, callback=IRL_Callback, bouncetime=300)
