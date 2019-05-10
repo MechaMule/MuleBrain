@@ -50,21 +50,21 @@ if __name__ == '__main__':
     import math
     f = open("../Log/log.txt", "w+")
     def MapRange(x, old, new):
-        if x<=old[0]:
-            return 0
-        elif x>=old[1]:
+        out = (new[0] + ( ((new[1]-new[0])*(x-old[0]))/(old[1]-old[0]) ))
+        if out <= new[0]:
+            return new[0]
+        elif out >= new[1]:
             return new[1]
-        return(new[0] + ( ((new[1]-new[0])*(x-old[0]))/(old[1]-old[0]) ))
-
+        return out
     try:
         killswitch = threading.Event()
         mule = MULE(killswitch, [13,6,26,19], [20,21])
         mule.MTR.Halt()
 
-        Mmax = 50
-        Mmin = 15
-        dGoal = 3
-        Kp = 2
+        Mmax = 90
+        Mmin = 35
+        dGoal = 5
+        Kp = 7.5
         Bmax = Mmax - (Kp*mule.eargap)
         idle = True
         mL = mR = 0
@@ -82,7 +82,7 @@ if __name__ == '__main__':
                     pass #swivel?
             else:
                 if dc >= dGoal:
-                    mb = MapRange(dc, [dGoal, dGoal+3], [Mmin,Bmax-1]) 
+                    mb = MapRange(dc, [dGoal, dGoal+3], [Mmin,Bmax-1])
                     mule.MTR.Motor_L(mb + Kp*(0-(dR-dL)))
                     mule.MTR.Motor_R(mb + Kp*(0-(dL-dR)))
                 else:
@@ -90,8 +90,8 @@ if __name__ == '__main__':
                     idle = True
 
             print("dL: ",dL,"   ||   dR: ",dR,"   ||   mL: ",round(mule.MTR.GetLSpeed(),3),"  ||  mR: ",round(mule.MTR.GetRSpeed(),3))
-            f.write(str(dL)+","+str(dR)+","+str(round(mule.MTR.GetLSpeed(),3))+","+str(round(mule.MTR.GetRSpeed(),3))+"\n")
-            
+            # f.write(str(dL)+","+str(dR)+","+str(round(mule.MTR.GetLSpeed(),3))+","+str(round(mule.MTR.GetRSpeed(),3))+"\n")
+
 
 
     except KeyboardInterrupt:
