@@ -20,15 +20,16 @@ GPIO.setup(BUTTON_W, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(BUTTON_B, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 received = False
-
+SaveString = "Nothing"
 
 
 def data_received(data):
     print("received: ", data)
     c.send(data)
     global received
+    global SaveString
     received = True
-
+    Savestring = data
 
 def ButtonCallback_G(channel):    
     PiZero_Client.send(Pressed_G)

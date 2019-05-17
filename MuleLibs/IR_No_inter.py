@@ -74,13 +74,26 @@ GPIO.add_event_detect(IR_R, GPIO.BOTH, callback=IRR_Callback, bouncetime=300)
 
 if __name__ == "__main__":
     print("==================== Starting IR Message Test =====================")
+    C_left = 0
+    C_Right = 0
 
     try:
         
         while True:
 
             # Shows us the status of the IR sensors in real semi-real time.
-            print("L_Status: {} | R_Status: {}".format( GPIO.input(IR_L),  GPIO.input(IR_R) ))
+            if CornerLeft:
+                C_left = 1
+            else:
+                C_left = 0
+
+            if CornerRight:
+                C_Right = 1
+            else:
+                C_right = 0
+                
+            print("LeftSensor: {} | RightSensor: {}".format(C_left, C_Right))
+            print("L_Status:   {} | R_Status:    {}".format( GPIO.input(IR_L),  GPIO.input(IR_R) ))
             # Slight delay to releave the processor of any stress. 
             time.sleep(1/2)
 
