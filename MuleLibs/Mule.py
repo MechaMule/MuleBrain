@@ -60,24 +60,27 @@ if __name__ == '__main__':
         return out
     try:
         killswitch = threading.Event()
-        mule = MULE(killswitch, [13,6,26,19], [20,21])
+        mule = MULE(killswitch, [6,13,19,26], [20,21])
         mule.MTR.Halt()
 
         Kp, Ki, Kd = 10, 0, 0
         
         Mmax = 70
         Mmin = 30
-        dGoal = 2
+        dGoal = 3
         idle = True
-        mL = mR = 0
+        mb = mL = mR = 0
         dL = dR = 0
+        adjL = adjR = 0
         motor_offset = 0
 
         pidL = PID(Kp, Ki, Kd, setpoint=0)
         pidR = PID(Kp, Ki, Kd, setpoint=0)
 
-        pidL.output_limits = (-30, 30)
-        pidR.output_limits = (-30, 30)
+        pidL.tunings = (99, 0, 10)
+        pidR.tunings = (99, 0, 10)
+        pidL.output_limits = (-99, 99)
+        pidR.output_limits = (-99, 99)
         
         pidL.auto_mode = True
         pidR.auto_mode = True
@@ -94,25 +97,39 @@ if __name__ == '__main__':
             if idle==True:
                 if dc >= dGoal + 2:
                     idle = False
+                    pidL.tunings = (10, 0, 0.5)
+                    pidR.tunings = (10, 0, 0.5)
+                    pidL.output_limits = (-15, 30)
+                    pidR.output_limits = (-15, 30)
 ##                    mule.MTR.Motor_L(80)
 ##                    mule.MTR.Motor_R(80-motor_offset)
                 else:
-                    pass #swivel?
+                    mb = 0
+                    adjL = pidL(dR-dL)
+                    adjR = pidR(dL-dR)
             else:
                 if dc >= dGoal:
                     mb = MapRange(dc, [dGoal, dGoal+10], [Mmin,Mmax])
-                    adjL = pidL(dL-dR)
-                    adjR = pidR(dR-dL)
-                    mL = mb + adjL
-                    mR = mb + adjR
+                    adjL = pidL(dR-dL)
+                    adjR = pidR(dL-dR)
+                    
 ##                    mule.MTR.Motor_L((mb + Kp*(0-(dR-dL))))
 ##                    mule.MTR.Motor_R((mb + Kp*(0-(dL-dR))) - motor_offset)
                 else:
                     mL = 0
                     mR = 0
-##                    mule.MTR.Halt()
+                    mule.MTR.Halt()
                     idle = True
+                    pidL.tunings = (99, 0, 10)
+                    pidR.tunings = (99, 0, 10)
+                    pidL.output_limits = (-99, 99)
+                    pidR.output_limits = (-99, 99)
                     
+            mL = mb + adjL
+            mR = mb + adjR
+            mule.MTR.Motor_L(mL)
+            mule.MTR.Motor_R(mR)
+            
             x_axis += [round(iteration * 1E-1,1)]
             y_dL.append(round(dL,3))
             y_dR.append(round(dR,3))
@@ -129,6 +146,11 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:
         print("pressed ctrl+c")
+        f.close()
+        mule.MTR.Halt()
+        killswitch.set()
+        mule.clean()
+        
         plt.subplot(2,1,1)
         plt.plot(x_axis, y_dL, label='dL')
         plt.plot(x_axis, y_dR, label='dR')
@@ -145,8 +167,4 @@ if __name__ == '__main__':
         plt.show()
     finally:
         print("goodbye")
-        f.close()
-        mule.MTR.Halt()
-        killswitch.set()
-        mule.clean()
         time.sleep(0.5)

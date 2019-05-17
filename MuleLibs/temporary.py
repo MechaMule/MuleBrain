@@ -9,33 +9,33 @@ from simple_pid import PID
 
 if __name__ == '__main__':
     print("Mule says hi")
-
     
     try:
         killswitch = threading.Event()
         mule = MULE(killswitch, [6,13,19,26], [20,21])
         mule.MTR.Halt()
 
-        Kp, Ki, Kd = 45, 0, 0
+        Kp, Ki, Kd = 99, 0, 15
         pidL = PID(Kp, Ki, Kd, setpoint=0)
         pidR = PID(Kp, Ki, Kd, setpoint=0)
         
-        pidL.output_limits = (-90, 90)
-        pidR.output_limits = (-90, 90)
+        pidL.output_limits = (-99, 99)
+        pidR.output_limits = (-99, 99)
         
         pidL.auto_mode = True
         pidR.auto_mode = True
 
         x_axis, y_mL, y_mR, y_dL, y_dR = [], [], [], [], []
         iteration = 0
-        
+
+        time.sleep(1)
         while True:
             time.sleep(1E-1)
             dL = mule.echo[0].GetFeet()
             dR = mule.echo[1].GetFeet()
             
-            adjL = pidL(dL-dR)
-            adjR = pidR(dR-dL)
+            adjL = pidL(dR-dL)
+            adjR = pidR(dL-dR)
 
             mb = 0
 
@@ -49,6 +49,7 @@ if __name__ == '__main__':
             y_dR.append(round(dR,3))
             y_mL.append(round(mL,3))
             y_mR.append(round(mR,3))
+            iteration += 1 
             print("Distance: ", round(dL,3), "   ||   ", round(dR,3))
             
             
@@ -56,6 +57,10 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:
         print("pressed ctrl+c")
+        IO.cleanup((4,17))
+        mule.MTR.Halt()
+        killswitch.set()
+        mule.clean()
         plt.subplot(2,1,1)
         plt.plot(x_axis, y_dL, label='dL')
         plt.plot(x_axis, y_dR, label='dR')
@@ -72,9 +77,5 @@ if __name__ == '__main__':
         plt.show()
     finally:
         print("goodbye")
-        IO.cleanup((4,17))
-        mule.MTR.Halt()
-        killswitch.set()
-        mule.clean()
         time.sleep(0.5)
 
