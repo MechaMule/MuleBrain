@@ -11,6 +11,8 @@ import Echo
 import Signal
 import threading
 import time
+import matplotlib.pyplot as plt
+from simple_pid import PID
 from MuleMotor_Functions import MOTOR
 
 class MULE(object):
@@ -61,41 +63,86 @@ if __name__ == '__main__':
         mule = MULE(killswitch, [13,6,26,19], [20,21])
         mule.MTR.Halt()
 
-        Mmax = 90
-        Mmin = 35
-        dGoal = 5
-        Kp = 7.5
-        Bmax = Mmax - (Kp*mule.eargap)
+        Kp, Ki, Kd = 10, 0, 0
+        
+        Mmax = 70
+        Mmin = 30
+        dGoal = 2
         idle = True
         mL = mR = 0
+        dL = dR = 0
+        motor_offset = 0
 
-        time.sleep(.5)
+        pidL = PID(Kp, Ki, Kd, setpoint=0)
+        pidR = PID(Kp, Ki, Kd, setpoint=0)
+
+        pidL.output_limits = (-30, 30)
+        pidR.output_limits = (-30, 30)
+        
+        pidL.auto_mode = True
+        pidR.auto_mode = True
+
+        x_axis, y_mL, y_mR, y_dL, y_dR = [], [], [], [], []
+        
+        time.sleep(0.5)
+        iteration = 0
         while True:
-            time.sleep(.1)
+            time.sleep(1E-1)
             dL = mule.echo[0].GetFeet()
             dR = mule.echo[1].GetFeet()
             dc = (dL+dR)/2
             if idle==True:
-                if dc >= dGoal +1:
+                if dc >= dGoal + 2:
                     idle = False
+##                    mule.MTR.Motor_L(80)
+##                    mule.MTR.Motor_R(80-motor_offset)
                 else:
                     pass #swivel?
             else:
                 if dc >= dGoal:
-                    mb = MapRange(dc, [dGoal, dGoal+3], [Mmin,Bmax-1])
-                    mule.MTR.Motor_L(mb + Kp*(0-(dR-dL)))
-                    mule.MTR.Motor_R(mb + Kp*(0-(dL-dR)))
+                    mb = MapRange(dc, [dGoal, dGoal+10], [Mmin,Mmax])
+                    adjL = pidL(dL-dR)
+                    adjR = pidR(dR-dL)
+                    mL = mb + adjL
+                    mR = mb + adjR
+##                    mule.MTR.Motor_L((mb + Kp*(0-(dR-dL))))
+##                    mule.MTR.Motor_R((mb + Kp*(0-(dL-dR))) - motor_offset)
                 else:
-                    mule.MTR.Halt()
+                    mL = 0
+                    mR = 0
+##                    mule.MTR.Halt()
                     idle = True
-
-            print("dL: ",dL,"   ||   dR: ",dR,"   ||   mL: ",round(mule.MTR.GetLSpeed(),3),"  ||  mR: ",round(mule.MTR.GetRSpeed(),3))
-            # f.write(str(dL)+","+str(dR)+","+str(round(mule.MTR.GetLSpeed(),3))+","+str(round(mule.MTR.GetRSpeed(),3))+"\n")
+                    
+            x_axis += [round(iteration * 1E-1,1)]
+            y_dL.append(round(dL,3))
+            y_dR.append(round(dR,3))
+            y_mL.append(round(mL,3))
+            y_mR.append(round(mR,3))
+            iteration += 1 
+            
+            print("Distance: ", round(dL,3), "   ||   ", round(dR,3))
+            
+##            print("d: [",dL,",",dR,"]   ||   m: [",round(mule.MTR.GetLSpeed(),3),",",round(mule.MTR.GetRSpeed(),3),"]")
+##            # f.write(str(dL)+","+str(dR)+","+str(round(mule.MTR.GetLSpeed(),3))+","+str(round(mule.MTR.GetRSpeed(),3))+"\n")
 
 
 
     except KeyboardInterrupt:
         print("pressed ctrl+c")
+        plt.subplot(2,1,1)
+        plt.plot(x_axis, y_dL, label='dL')
+        plt.plot(x_axis, y_dR, label='dR')
+        plt.xlabel('time')
+        plt.ylabel('distance')
+        plt.legend()
+
+        plt.subplot(2,1,2)
+        plt.plot(x_axis, y_mL, label='mL')
+        plt.plot(x_axis, y_mR, label='mR')
+        plt.xlabel('time')
+        plt.ylabel('Motor Speed')
+        plt.legend()
+        plt.show()
     finally:
         print("goodbye")
         f.close()

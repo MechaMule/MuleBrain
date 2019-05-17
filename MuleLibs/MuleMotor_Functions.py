@@ -21,7 +21,7 @@ class MOTOR(object):
     """
     FORWARD = IO.LOW
     REVERSE = IO.HIGH
-    def __init__(self, pin_pwmL, pin_pwmR, pin_dirL, pin_dirR, pwm_freq = 1000, IO_mode=IO.BCM):
+    def __init__(self, pin_pwmL, pin_pwmR, pin_dirL, pin_dirR, pwm_freq = 512, IO_mode=IO.BCM):
         """onstructor for MOTOR class"""
         #store parameters
         self.pin_pwmL = pin_pwmL

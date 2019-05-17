@@ -31,15 +31,15 @@ class ECHO(object):
         self.t_start = 0    #just used for holding time when echo start
         self.TOF = 0    #raw time of flight in seconds
         self.dist = 0   #raw distance in meters
-        self.offset = 2.7178
+        self.offset = 2.7178 
 
 
         self.speed_of_sound = 331.3 * math.sqrt(1+(self.temp / 273.15)) #m/s
 ##        self.timeout = 6 / self.speed_of_sound
         self.timeout = 500E-3 #400ms timeout. put this close to UST intervals
-        self.TOF_MAX = (1.8288+self.offset)/self.speed_of_sound #1.8288meters filter.
+        self.TOF_MAX = (1+self.offset)/self.speed_of_sound #1.8288meters filter.
 
-        self.arr = [0.5]*3
+        self.arr = [0]*3
         self.i = 0
 
         IO.setwarnings(False)
@@ -67,16 +67,16 @@ class ECHO(object):
 
 
     def GetMeters(self):
-        return round(self.dist, 5)
+        return round(self.dist, 3)
     
     def GetCM(self):
-        return round(self.dist/1E-3, 5)
+        return round(self.dist/1E-3, 3)
 
     def GetFeet(self):
-        return round(self.dist * 3.28084, 5)
+        return round(self.dist * 3.28084, 3)
 
     def GetInch(self):
-        return round(self.dist * 3.28084 * 12, 5)
+        return round(self.dist * 3.28084 * 12, 3)
 
     def clean(self):
         """Resets and cleans up the echo pin"""
