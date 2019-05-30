@@ -34,9 +34,14 @@ class MULE(object):
         #motor
         self.MTR = MOTOR(self.pin_MTRS[0], self.pin_MTRS[1], self.pin_MTRS[2], self.pin_MTRS[3])
 
+        #motor controllers
+##        self.pidL = PID(0, 0, 0, setpoint=0)
+##        self.pidR = PID(0, 0, 0, setpoint=0)
+        
         #USR
         for i in range(0, len(self.pin_ECHOS)):
             self.echo.append(Echo.ECHO(self.pin_ECHOS[i]))
+
 
     def clean(self):
         """Cleans up the echo and motor pins"""
@@ -65,9 +70,9 @@ if __name__ == '__main__':
 
         Kp, Ki, Kd = 10, 0, 0
         
-        Mmax = 70
-        Mmin = 30
-        dGoal = 3
+        Mmax = 69
+        Mmin = 50
+        dGoal = 5
         idle = True
         mb = mL = mR = 0
         dL = dR = 0
@@ -77,10 +82,10 @@ if __name__ == '__main__':
         pidL = PID(Kp, Ki, Kd, setpoint=0)
         pidR = PID(Kp, Ki, Kd, setpoint=0)
 
-        pidL.tunings = (99, 0, 10)
-        pidR.tunings = (99, 0, 10)
-        pidL.output_limits = (-99, 99)
-        pidR.output_limits = (-99, 99)
+        pidL.tunings = (60, 0.5, 5)
+        pidR.tunings = (60, 0.5, 5)
+        pidL.output_limits = (-66, 66)
+        pidR.output_limits = (-66, 66)
         
         pidL.auto_mode = True
         pidR.auto_mode = True
@@ -89,48 +94,50 @@ if __name__ == '__main__':
         
         time.sleep(0.5)
         iteration = 0
+        sample_t = 1E-1
         while True:
-            time.sleep(1E-1)
+            time.sleep(sample_t)
             dL = mule.echo[0].GetFeet()
             dR = mule.echo[1].GetFeet()
             dc = (dL+dR)/2
             if idle==True:
                 if dc >= dGoal + 2:
                     idle = False
-                    pidL.tunings = (10, 0, 0.5)
-                    pidR.tunings = (10, 0, 0.5)
-                    pidL.output_limits = (-15, 30)
-                    pidR.output_limits = (-15, 30)
-##                    mule.MTR.Motor_L(80)
-##                    mule.MTR.Motor_R(80-motor_offset)
+                    pidL.tunings = (8, 0, 1.5)
+                    pidR.tunings = (8, 0, 1.5)
+                    pidL.output_limits = (-8, 8)
+                    pidR.output_limits = (-8, 8)
+                    mb = 60
                 else:
                     mb = 0
                     adjL = pidL(dR-dL)
                     adjR = pidR(dL-dR)
             else:
                 if dc >= dGoal:
-                    mb = MapRange(dc, [dGoal, dGoal+10], [Mmin,Mmax])
+##                    mb = MapRange(dc, [dGoal, dGoal+10], [Mmin,Mmax])
+                    mb = 40
                     adjL = pidL(dR-dL)
-                    adjR = pidR(dL-dR)
+                    adjR = pidR(dL-dR)-3
                     
 ##                    mule.MTR.Motor_L((mb + Kp*(0-(dR-dL))))
 ##                    mule.MTR.Motor_R((mb + Kp*(0-(dL-dR))) - motor_offset)
                 else:
                     mL = 0
                     mR = 0
+                    mb = 0
                     mule.MTR.Halt()
                     idle = True
-                    pidL.tunings = (99, 0, 10)
-                    pidR.tunings = (99, 0, 10)
-                    pidL.output_limits = (-99, 99)
-                    pidR.output_limits = (-99, 99)
-                    
+                    pidL.tunings = (60, 0.5, 5)
+                    pidR.tunings = (60, 0.5, 5)
+                    pidL.output_limits = (-66, 66)
+                    pidR.output_limits = (-66, 66)
+                                
             mL = mb + adjL
             mR = mb + adjR
             mule.MTR.Motor_L(mL)
             mule.MTR.Motor_R(mR)
             
-            x_axis += [round(iteration * 1E-1,1)]
+            x_axis += [round(iteration * sample_t,3)]
             y_dL.append(round(dL,3))
             y_dR.append(round(dR,3))
             y_mL.append(round(mL,3))
