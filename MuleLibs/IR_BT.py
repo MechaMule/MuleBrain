@@ -5,8 +5,8 @@ import RPi.GPIO as GPIO
 #===================== Predefined messages =======================
 Detect = "FOUND"
 Lost   = "LOST"
-CornerLeft = False
-CornerRight = False
+CornerLeft = 0
+CornerRight = 0
 Both_Detect  = "BOTH_FOUND"
 Both_Lost    = "BOTH_LOST"
 #=================================================================
@@ -23,55 +23,49 @@ received = False
 # For now the callbacks have print statements to check to see if they
 #are being accessed
 def IRL_Callback(channel):
-    CornerLeft = False      #Reseting corner flags
-    CornerRight = False
-    
-    # if statements check to see current values of IR sensors.
-    # Depending on values, it lets us know if there is a corner or not
-    # If GPIO.LOW then it means sensors have detected signal
-    # If GPIO.HIGH then sensors have lost signal    
-    if (GPIO.input(IR_L) == GPIO.LOW) and (GPIO.input(IR_R) == GPIO.LOW):
-        print("{}_L_Callback".format(Both_Detect))
+    global CornerLeft
+    global CornerRight
+    CornerLeft = 0      #Reseting corner flags
+    CornerRight = 0
         
-    elif (GPIO.input(IR_L) == GPIO.HIGH) and (GPIO.input(IR_R) == GPIO.HIGH):
-        print("{}_L_Callback".format(Both_Lost))
-        CornerLeft = False
-        CornerRight = False
+    if (GPIO.input(IR_L) == GPIO.HIGH) and (GPIO.input(IR_R) == GPIO.HIGH):
+        CornerLeft = 0
+        CornerRight = 0
         
     elif (GPIO.input(IR_L) == GPIO.HIGH) and (GPIO.input(IR_R) == GPIO.LOW):
-        CornerRight = True
-        print("{}_LEFT_L_Callback".format(Lost))
+        CornerRight = 1
+        
     else:                               # Might not need this statument
-        #PiZero_Client.send(Left_Lost)  # Because it is redudent with statement
-        print("{}_RIGHT_L_Callback".format(Lost))  # in IRR_Callback
-        CornerLeft = True
+        CornerLeft = 1
 
 
 # IR sensor Interrupt for         
 def IRR_Callback(channel):
-    CornerLeft = False      # Reseting corner detection flag
-    CornerRight = False
+    global CornerLeft
+    global CornerRight
+    CornerLeft = 0      # Reseting corner detection flag
+    CornerRight = 0
 
     # if statements check to see current values of IR sensors.
     # Depending on values, it lets us know if there is a corner or not
     # If GPIO.LOW then it means sensors have detected signal
-    # If GPIO.HIGH then sensors have lost signal
-    if (GPIO.input(IR_R) == GPIO.LOW) and (GPIO.input(IR_L) == GPIO.LOW):
-        print("{}_R_Callback".format(Both_Detect))
-
-    #Lost both sensors here, will wait to detect one of the sides.
-    elif (GPIO.input(IR_R) == GPIO.HIGH) and (GPIO.input(IR_L) == GPIO.HIGH):
-        print("{}_R_Callback".format(Both_Lost))
-        CornerLeft = False
-        CornerRight = False
+    if (GPIO.input(IR_R) == GPIO.HIGH) and (GPIO.input(IR_L) == GPIO.HIGH):
+        CornerLeft = 0
+        CornerRight = 0
     
     elif (GPIO.input(IR_R) == GPIO.HIGH) and (GPIO.input(IR_L) == GPIO.LOW):
-        print("{}_RIGHT_R_callback".format(Lost))
-        CornerLeft = True
+        CornerLeft = 1
         
     else:
-        print("{}_LEFT_R_Callback".format(Lost))
-        CornerRight = True
+        CornerRight = 1
+# Function that returns the states of the IR Receivers.
+# Values are updated when interrupt is triggered
+
+def GetIR_States():
+    global CornerLeft
+    global CornerRight
+    IR_states = ((CornerLeft << 1) & 0b10) | (CornerRight & 0b01)
+    return IR_states
 
 
 GPIO.add_event_detect(IR_L, GPIO.BOTH, callback=IRL_Callback, bouncetime=300)
@@ -85,8 +79,9 @@ if __name__ == "__main__":
         while True:
 
             # Shows us the status of the IR sensors in real semi-real time.
-            print("L_Status: {} | R_Status: {}".format( GPIO.input(IR_L),  GPIO.input(IR_R) ))
-            # Slight delay to releave the processor of any stress. 
+            #print("L_Status: {} | R_Status: {}".format( GPIO.input(IR_L),  GPIO.input(IR_R) ))
+            # Slight delay to releave the processor of any stress.
+            print (GetIR_States())
             time.sleep(1/2)
 
 
