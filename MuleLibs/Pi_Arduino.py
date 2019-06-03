@@ -6,6 +6,7 @@ port = "/dev/ttyACM0"
 rate = 57600
 startMarker = 60
 endMarker = 62
+Sent_Flag = True # Preset to true so that it wont immediately send message
 
 
 s1 = serial.Serial(port, rate)
@@ -86,11 +87,16 @@ def runTest(td):
 
         time.sleep(1)
 
+def Pi_Request():
+    global Sent_Flag
+    Sent_Flag = False
 
 #======================================
 
 
 if __name__ == '__main__':
+    #global Sent_Flag
+    counter = 0
     try: 
         print ("Serial port " + port + " opened  Baudrate " + str(rate))
 
@@ -98,31 +104,23 @@ if __name__ == '__main__':
 
 
         waitForArduino()
+        testData = ["<REVS>"]
+        while True:
 
+                
+            
+            if(Sent_Flag == False):
+                Sent_Flag = True
+                #testData.append("<REVS>")            
+                runTest(testData)
+                
+            if counter == 5000000:
+                Pi_Request()
+                print (counter)
+                counter = 0
 
-        testData = []
-        testData.append("<REVS>")
-        testData.append("<REVS>")
-        testData.append("<REVS>")
-        testData.append("<REVS>")
-        testData.append("<REVS>")
-        testData.append("<REVS>")
-        testData.append("<REVS>")
-        testData.append("<REVS>")
-        testData.append("<REVS>")
-        testData.append("<REVS>")
-        testData.append("<REVS>")
-        testData.append("<REVS>")
-        testData.append("<REVS>")
-        testData.append("<REVS>")
-        testData.append("<REVS>")
-        testData.append("<REVS>")
-        testData.append("<REVS>")
-        testData.append("<REVS>")
-        testData.append("<REVS>")
-        testData.append("<REVS>")
-        
-        runTest(testData)
+            counter += 1
+            #print (counter)
 
     except KeyboardInterrupt:
         s1.close
