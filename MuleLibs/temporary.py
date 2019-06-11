@@ -3,8 +3,6 @@ import time
 import threading
 import RPi.GPIO as IO
 import math
-import matplotlib.pyplot as plt
-from simple_pid import PID
 
 
 if __name__ == '__main__':
@@ -12,69 +10,27 @@ if __name__ == '__main__':
     
     try:
         killswitch = threading.Event()
-        mule = MULE(killswitch, [6,13,19,26], [20,21])
+        mule = MULE(killswitch, [13, 6,26,19], [20,21])
         mule.MTR.Halt()
 
-        Kp, Ki, Kd = 99, 0, 15
-        pidL = PID(Kp, Ki, Kd, setpoint=0)
-        pidR = PID(Kp, Ki, Kd, setpoint=0)
-        
-        pidL.output_limits = (-99, 99)
-        pidR.output_limits = (-99, 99)
-        
-        pidL.auto_mode = True
-        pidR.auto_mode = True
-
-        x_axis, y_mL, y_mR, y_dL, y_dR = [], [], [], [], []
-        iteration = 0
-
-        time.sleep(1)
+        time.sleep(0.5)
         while True:
-            time.sleep(1E-1)
-            dL = mule.echo[0].GetFeet()
-            dR = mule.echo[1].GetFeet()
-            
-            adjL = pidL(dR-dL)
-            adjR = pidR(dL-dR)
-
-            mb = 0
-
-            mL = mb + adjL
-            mR = mb + adjR
-            mule.MTR.Motor_L(mL)
+            mL = int(input("L: "))
+            mR = int(input("R: "))
+            mule.MTR.Motor_L(80)
+            mule.MTR.Motor_R(80)
+            time.sleep(0.5)
+            mule.MTR.Motor_L(mL+20)
             mule.MTR.Motor_R(mR)
-
-            x_axis += [round(iteration * 1E-1,1)]
-            y_dL.append(round(dL,3))
-            y_dR.append(round(dR,3))
-            y_mL.append(round(mL,3))
-            y_mR.append(round(mR,3))
-            iteration += 1 
-            print("Distance: ", round(dL,3), "   ||   ", round(dR,3))
+            input("enter to stop")
+            mule.MTR.Halt()
+            time.sleep(0.5)
             
-            
-            
-
     except KeyboardInterrupt:
         print("pressed ctrl+c")
-        IO.cleanup((4,17))
         mule.MTR.Halt()
         killswitch.set()
         mule.clean()
-        plt.subplot(2,1,1)
-        plt.plot(x_axis, y_dL, label='dL')
-        plt.plot(x_axis, y_dR, label='dR')
-        plt.xlabel('time')
-        plt.ylabel('distance')
-        plt.legend()
-
-        plt.subplot(2,1,2)
-        plt.plot(x_axis, y_mL, label='mL')
-        plt.plot(x_axis, y_mR, label='mR')
-        plt.xlabel('time')
-        plt.ylabel('Motor Speed')
-        plt.legend()
-        plt.show()
     finally:
         print("goodbye")
         time.sleep(0.5)

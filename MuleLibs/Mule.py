@@ -15,6 +15,14 @@ import matplotlib.pyplot as plt
 from simple_pid import PID
 from MuleMotor_Functions import MOTOR
 
+def MapRange(x, old, new):
+        out = (new[0] + ( ((new[1]-new[0])*(x-old[0]))/(old[1]-old[0]) ))
+        if out <= new[0]:
+            return new[0]
+        elif out >= new[1]:
+            return new[1]
+        return out
+
 class MULE(object):
     """Holds pins and setings for Mule.
     Parameters:
@@ -35,13 +43,24 @@ class MULE(object):
         self.MTR = MOTOR(self.pin_MTRS[0], self.pin_MTRS[1], self.pin_MTRS[2], self.pin_MTRS[3])
 
         #motor controllers
-##        self.pidL = PID(0, 0, 0, setpoint=0)
-##        self.pidR = PID(0, 0, 0, setpoint=0)
+        self.pidL = PID(0, 0, 0, setpoint=0)
+        self.pidR = PID(0, 0, 0, setpoint=0)
+        self.pidL.auto_mode = True
+        self.pidR.auto_mode = True
         
         #USR
         for i in range(0, len(self.pin_ECHOS)):
             self.echo.append(Echo.ECHO(self.pin_ECHOS[i]))
 
+    def PIDConfig(self, K, lim):
+        """Updates both PIDs gains and limits
+        (1) K : Kp, Ki, Kd
+        (2) lim : changes limits for pid output
+        """
+        self.pidL.tunings = (K[0], K[1], K[2])
+        self.pidR.tunings = (K[0], K[1], K[2])
+        self.pidL.output_limits = (lim[0], lim[1])
+        self.pidR.output_limits = (lim[0], lim[1])
 
     def clean(self):
         """Cleans up the echo and motor pins"""
@@ -51,127 +70,121 @@ class MULE(object):
         self.MTR.clean()
 
 
-
 if __name__ == '__main__':
     print("Mule says hi")
     import math
-    f = open("../Log/log.txt", "w+")
-    def MapRange(x, old, new):
-        out = (new[0] + ( ((new[1]-new[0])*(x-old[0]))/(old[1]-old[0]) ))
-        if out <= new[0]:
-            return new[0]
-        elif out >= new[1]:
-            return new[1]
-        return out
+    from bluedot.btcomm import BluetoothServer
+##    f = open("../Log/log.txt", "w+")
+    def bt_received(data):
+        print(data)
+
     try:
         killswitch = threading.Event()
         mule = MULE(killswitch, [6,13,19,26], [20,21])
         mule.MTR.Halt()
 
-        Kp, Ki, Kd = 10, 0, 0
+        bts = BluetoothServer(bt_received)
         
-        Mmax = 69
-        Mmin = 50
-        dGoal = 5
-        idle = True
-        mb = mL = mR = 0
-        dL = dR = 0
-        adjL = adjR = 0
-        motor_offset = 0
+        state_idle, state_follow, state_leftCorner, state_rightCorner = 0,1,2,3
+        state = state_idle
 
-        pidL = PID(Kp, Ki, Kd, setpoint=0)
-        pidR = PID(Kp, Ki, Kd, setpoint=0)
-
-        pidL.tunings = (60, 0.5, 5)
-        pidR.tunings = (60, 0.5, 5)
-        pidL.output_limits = (-66, 66)
-        pidR.output_limits = (-66, 66)
-        
-        pidL.auto_mode = True
-        pidR.auto_mode = True
-
-        x_axis, y_mL, y_mR, y_dL, y_dR = [], [], [], [], []
-        
-        time.sleep(0.5)
-        iteration = 0
+        x_axis, y_mL, y_mR, y_dL, y_dR , y_dGoal, y_mb= [], [], [], [], [], [], []
         sample_t = 1E-1
+        iteration = 0
+
+        dGoal = 3
+        Mmin, Mmax = 50, 69
+        adjL = adjR = dL = dR = mb = mL = mR = motor_offset = 0
+                
+        mule.PIDConfig([50, 0, 5], [-50,50])
+
+        time.sleep(0.5)
+##        input("enter to start")
         while True:
             time.sleep(sample_t)
             dL = mule.echo[0].GetFeet()
             dR = mule.echo[1].GetFeet()
             dc = (dL+dR)/2
-            if idle==True:
-                if dc >= dGoal + 2:
-                    idle = False
-                    pidL.tunings = (8, 0, 1.5)
-                    pidR.tunings = (8, 0, 1.5)
-                    pidL.output_limits = (-8, 8)
-                    pidR.output_limits = (-8, 8)
-                    mb = 60
-                else:
-                    mb = 0
-                    adjL = pidL(dR-dL)
-                    adjR = pidR(dL-dR)
-            else:
-                if dc >= dGoal:
-##                    mb = MapRange(dc, [dGoal, dGoal+10], [Mmin,Mmax])
+            if state == state_idle:
+                if dc >= dGoal+2:
+                    state = state_follow
+                    mule.PIDConfig([50, 0, 0], [-24,24])
                     mb = 40
-                    adjL = pidL(dR-dL)
-                    adjR = pidR(dL-dR)-3
-                    
-##                    mule.MTR.Motor_L((mb + Kp*(0-(dR-dL))))
-##                    mule.MTR.Motor_R((mb + Kp*(0-(dL-dR))) - motor_offset)
+                    motor_offset = 18
                 else:
-                    mL = 0
-                    mR = 0
-                    mb = 0
+##                    mb = 0
+                    adjR = mule.pidL(dR-dL)
+                    adjL = mule.pidR(dL-dR)
+##                    adjR = 0
+##                    adjL = 0
+                    
+            elif state == state_follow:
+                if dc >= dGoal:
+##                    mb = 50 #will need to change later to match distance to user
+                    adjR = mule.pidL(dR-dL)
+                    adjL = mule.pidR(dL-dR)
+                else:
+                    state = state_idle
+                    mL = mR = mb = motor_offset = 0
                     mule.MTR.Halt()
-                    idle = True
-                    pidL.tunings = (60, 0.5, 5)
-                    pidR.tunings = (60, 0.5, 5)
-                    pidL.output_limits = (-66, 66)
-                    pidR.output_limits = (-66, 66)
-                                
-            mL = mb + adjL
+                    mule.PIDConfig([50, 0, 5], [-50,50])
+                    
+            elif state == state_leftCorner:
+                pass
+            
+            elif state == state_rightCorner:
+                pass
+
+            mL = mb + adjL + motor_offset
             mR = mb + adjR
-            mule.MTR.Motor_L(mL)
+            mule.MTR.Motor_L(mL - motor_offset)
             mule.MTR.Motor_R(mR)
             
             x_axis += [round(iteration * sample_t,3)]
+            y_dGoal.append(round(dGoal,3))
+            y_mb.append(round(mb,3))
             y_dL.append(round(dL,3))
             y_dR.append(round(dR,3))
             y_mL.append(round(mL,3))
             y_mR.append(round(mR,3))
-            iteration += 1 
-            
+            iteration += 1
+
             print("Distance: ", round(dL,3), "   ||   ", round(dR,3))
+
             
-##            print("d: [",dL,",",dR,"]   ||   m: [",round(mule.MTR.GetLSpeed(),3),",",round(mule.MTR.GetRSpeed(),3),"]")
-##            # f.write(str(dL)+","+str(dR)+","+str(round(mule.MTR.GetLSpeed(),3))+","+str(round(mule.MTR.GetRSpeed(),3))+"\n")
-
-
-
     except KeyboardInterrupt:
-        print("pressed ctrl+c")
-        f.close()
         mule.MTR.Halt()
         killswitch.set()
         mule.clean()
-        
-        plt.subplot(2,1,1)
-        plt.plot(x_axis, y_dL, label='dL')
-        plt.plot(x_axis, y_dR, label='dR')
-        plt.xlabel('time')
-        plt.ylabel('distance')
-        plt.legend()
 
-        plt.subplot(2,1,2)
-        plt.plot(x_axis, y_mL, label='mL')
-        plt.plot(x_axis, y_mR, label='mR')
-        plt.xlabel('time')
-        plt.ylabel('Motor Speed')
-        plt.legend()
+        plt.figure(1)
+##        plt.subplot(2,1,1)
+        plt.title('Distance vs. Time', size = 20)
+        plt.plot(x_axis, y_dL, label='Left Distance')
+        plt.plot(x_axis, y_dR, label='Right Distance')
+        plt.tick_params(axis='x', labelsize=12)
+        plt.tick_params(axis='y', labelsize=12)
+        plt.plot(x_axis, y_dGoal, label='Goal Distance', color='#A0A0A0', linestyle='dashed')
+        plt.xlabel('time(s)', size = 16)
+        plt.ylabel('Distance(ft)', size = 16)
+        plt.legend(prop={'size': 10})
+        plt.show
+
+        plt.figure(2)
+##        plt.subplot(2,1,2)
+        plt.title('Motor PWM vs. Time', size = 20)
+        plt.plot(x_axis, y_mL, label='Left Motor')
+        plt.plot(x_axis, y_mR, label='Right Motor')
+        plt.plot(x_axis, y_mb, label='Moter Bias', color='#A0A0A0', linestyle='dashed')
+        plt.tick_params(axis='x', labelsize=12)
+        plt.tick_params(axis='y', labelsize=12)
+        plt.xlabel('time(s)', size = 16)
+        plt.ylabel('Motor Speeds(pwm)', size = 16)
+        plt.legend(prop={'size': 10})
         plt.show()
+
     finally:
-        print("goodbye")
+        print("Goodbye")
         time.sleep(0.5)
+    
+    
