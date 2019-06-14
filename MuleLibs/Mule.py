@@ -12,8 +12,10 @@ import Signal
 import threading
 import time
 import matplotlib.pyplot as plt
+from bluedot.btcomm import BluetoothServer
 from simple_pid import PID
 from MuleMotor_Functions import MOTOR
+from queue import Queue
 
 def MapRange(x, old, new):
         out = (new[0] + ( ((new[1]-new[0])*(x-old[0]))/(old[1]-old[0]) ))
@@ -52,6 +54,19 @@ class MULE(object):
         for i in range(0, len(self.pin_ECHOS)):
             self.echo.append(Echo.ECHO(self.pin_ECHOS[i]))
 
+        #bluetooth
+        self.bts = BluetoothServer(self.bt_received)
+
+        #threaded queue
+        self.queue = Queue(maxsize=0)
+        for i in range(2):
+            t = threading.Thread(target=self.qworker)#, kwargs=dict(stopper=self.killswitch))
+            t.daemon = True
+            t.start()
+
+        #user configuration?:
+        self.dGoal = 5
+
     def PIDConfig(self, K, lim):
         """Updates both PIDs gains and limits
         (1) K : Kp, Ki, Kd
@@ -61,6 +76,35 @@ class MULE(object):
         self.pidR.tunings = (K[0], K[1], K[2])
         self.pidL.output_limits = (lim[0], lim[1])
         self.pidR.output_limits = (lim[0], lim[1])
+
+    def bt_received(self, data):
+        self.queue.put(data)
+
+    def qworker(self):
+        while (self.killswitch.is_set() == False):
+            event = self.queue.get()
+            if (event == "STOP"):
+                self.dGoal = 999
+
+            elif (event == "RIGHT"):
+                pass
+            
+            elif (event == "LEFT"):
+                pass
+            
+            elif (event == "ONE80"):
+                pass
+            
+            elif (event == "DIST_5FT"):
+                self.dGoal = 5
+
+            elif (event == "DIST_10FT"):
+                self.dGoal = 10
+                
+            elif (event == "DIST_15FT"):
+                self.dGoal = 15
+##            print(event)
+            self.queue.task_done()
 
     def clean(self):
         """Cleans up the echo and motor pins"""
@@ -73,17 +117,13 @@ class MULE(object):
 if __name__ == '__main__':
     print("Mule says hi")
     import math
-    from bluedot.btcomm import BluetoothServer
+    
 ##    f = open("../Log/log.txt", "w+")
-    def bt_received(data):
-        print(data)
 
     try:
         killswitch = threading.Event()
         mule = MULE(killswitch, [6,13,19,26], [20,21])
         mule.MTR.Halt()
-
-        bts = BluetoothServer(bt_received)
         
         state_idle, state_follow, state_leftCorner, state_rightCorner = 0,1,2,3
         state = state_idle
@@ -92,7 +132,6 @@ if __name__ == '__main__':
         sample_t = 1E-1
         iteration = 0
 
-        dGoal = 3
         Mmin, Mmax = 50, 69
         adjL = adjR = dL = dR = mb = mL = mR = motor_offset = 0
                 
@@ -106,20 +145,21 @@ if __name__ == '__main__':
             dR = mule.echo[1].GetFeet()
             dc = (dL+dR)/2
             if state == state_idle:
-                if dc >= dGoal+2:
+                if dc >= mule.dGoal+2:
                     state = state_follow
                     mule.PIDConfig([50, 0, 0], [-24,24])
                     mb = 40
                     motor_offset = 18
                 else:
 ##                    mb = 0
-                    adjR = mule.pidL(dR-dL)
-                    adjL = mule.pidR(dL-dR)
 ##                    adjR = 0
 ##                    adjL = 0
+                    adjR = mule.pidL(dR-dL)
+                    adjL = mule.pidR(dL-dR)
+
                     
             elif state == state_follow:
-                if dc >= dGoal:
+                if dc >= mule.dGoal:
 ##                    mb = 50 #will need to change later to match distance to user
                     adjR = mule.pidL(dR-dL)
                     adjL = mule.pidR(dL-dR)
@@ -141,7 +181,7 @@ if __name__ == '__main__':
             mule.MTR.Motor_R(mR)
             
             x_axis += [round(iteration * sample_t,3)]
-            y_dGoal.append(round(dGoal,3))
+            y_dGoal.append(round(mule.dGoal,3))
             y_mb.append(round(mb,3))
             y_dL.append(round(dL,3))
             y_dR.append(round(dR,3))
@@ -149,7 +189,7 @@ if __name__ == '__main__':
             y_mR.append(round(mR,3))
             iteration += 1
 
-            print("Distance: ", round(dL,3), "   ||   ", round(dR,3))
+##            print("Distance: ", round(dL,3), "   ||   ", round(dR,3))
 
             
     except KeyboardInterrupt:
@@ -158,20 +198,20 @@ if __name__ == '__main__':
         mule.clean()
 
         plt.figure(1)
-##        plt.subplot(2,1,1)
+        plt.subplot(2,1,1)
         plt.title('Distance vs. Time', size = 20)
         plt.plot(x_axis, y_dL, label='Left Distance')
         plt.plot(x_axis, y_dR, label='Right Distance')
         plt.tick_params(axis='x', labelsize=12)
         plt.tick_params(axis='y', labelsize=12)
         plt.plot(x_axis, y_dGoal, label='Goal Distance', color='#A0A0A0', linestyle='dashed')
-        plt.xlabel('time(s)', size = 16)
+##        plt.xlabel('time(s)', size = 16)
         plt.ylabel('Distance(ft)', size = 16)
         plt.legend(prop={'size': 10})
         plt.show
 
-        plt.figure(2)
-##        plt.subplot(2,1,2)
+##        plt.figure(2)
+        plt.subplot(2,1,2)
         plt.title('Motor PWM vs. Time', size = 20)
         plt.plot(x_axis, y_mL, label='Left Motor')
         plt.plot(x_axis, y_mR, label='Right Motor')
