@@ -81,9 +81,22 @@ if __name__ == "__main__":
 
     IR = IR()
     IR.Init()
-    print(IR.Status())
-        
-    IO.cleanup()
+    print('======= Now starting test to see if both IR sensors can see target')
+    try:
+        while 1:
+            print(IR.Status())
+            if(IR.Status() == 0b0011):
+                print('FOV between N & W: In front of bot')
+                #break
+            elif(IR.Status() == 0b0111):
+                print('FOV of N only: Left side of bot')
+            elif(IR.Status() == 0b1011):
+                print('FOV of W only: Right side of bot')
+  
+    except KeyboardInterrupt:
+        print('Exiting program via CTRL + C')
+    finally:
+        IO.cleanup()
 
     
 
